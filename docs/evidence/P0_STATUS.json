@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "at": "2026-11-03T14:45:37.773928Z",
+  "status": "pending",
+  "scope": "p0_gate_inventory",
+  "checks": {
+    "runtime": {
+      "status": "passed",
+      "requires": "Exact runtime and fixed SQLite"
+    },
+    "source": {
+      "status": "pending",
+      "requires": "Independent real buyer and source compatibility review"
+    },
+    "model": {
+      "status": "pending",
+      "requires": "Authenticated Vultr text, tool schema and actual screenshot input"
+    },
+    "worker": {
+      "status": "pending",
+      "requires": "Actual isolated browser, allowed fetch, denied egress, timeout and cleanup"
+    }
+  },
+  "next_package": "P1 remains blocked until all live evidence is independently reviewed",
+  "implementation": "P0 runtime and live probe tooling available; application packages P1 and later remain pending.",
+  "verification": {
+    "local_policy_and_storage_checks": 68,
+    "bootstrap": "passed",
+    "source_scan": "passed",
+    "browser_image_build": "not_run",
+    "live_supplier_capture": "not_run",
+    "vultr_inference": "not_run",
+    "worker_isolation": "not_run"
+  }
+}

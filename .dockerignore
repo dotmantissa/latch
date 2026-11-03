@@ -1,0 +1,8 @@
+**
+!infra/
+!infra/browser/
+!infra/browser/Dockerfile
+!infra/browser/requirements.lock
+!services/
+!services/supervisor/
+!services/supervisor/browser_probe.py

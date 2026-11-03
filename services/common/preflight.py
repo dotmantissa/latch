@@ -161,6 +161,18 @@ def model_probe(settings: Settings, capture_file: Path) -> dict:
     capture = json.loads(capture_file.read_bytes())
     if capture.get("url") not in allowed or capture.get("complete") is not True:
         raise ValueError("An actual complete capture of an admitted source is required")
+    worker_report_file = capture_file.parent / "worker_capture.json"
+    if not worker_report_file.is_file():
+        raise ValueError("Actual worker capture provenance is required")
+    worker_report = json.loads(worker_report_file.read_bytes())
+    if (
+        worker_report.get("scope") != "actual_worker_observations"
+        or worker_report.get("runtime") != "runsc"
+        or worker_report.get("cleanup_observed") is not True
+        or worker_report.get("capture_sha256") != capture.get("png_sha256")
+        or capture.get("uid") != 1000
+    ):
+        raise ValueError("Actual worker capture provenance mismatch")
     raster = base64.b64decode(capture["png_base64"], validate=True)
     if len(raster) > 10 * 1024 * 1024 or raster[:8] != b"\x89PNG\r\n\x1a\n":
         raise ValueError("Bounded captured PNG required")
@@ -273,6 +285,10 @@ def main() -> int:
     commands.add_parser("runtime")
     commands.add_parser("source")
     commands.add_parser("gate")
+    worker = commands.add_parser("worker")
+    worker.add_argument("--timeout-probe", action="store_true")
+    cleanup = commands.add_parser("cleanup-worker")
+    cleanup.add_argument("--task-id", required=True)
     model = commands.add_parser("model")
     model.add_argument("--capture", type=Path, required=True)
     args = parser.parse_args()
@@ -285,6 +301,15 @@ def main() -> int:
             report = source_probe(settings)
         elif args.command == "model":
             report = model_probe(settings, args.capture)
+        elif args.command == "worker":
+            from services.supervisor.spike import worker_probe
+
+            report = worker_probe(settings, args.timeout_probe)
+        elif args.command == "cleanup-worker":
+            from services.supervisor.spike import cleanup_task
+
+            cleaned = cleanup_task(args.task_id)
+            report = {"status": "passed" if cleaned else "failed", "scope": "exact_task_cleanup"}
         else:
             report = gate_report(settings)
     except (OSError, ValueError, RuntimeError, KeyError, subprocess.SubprocessError) as exc:
@@ -298,7 +323,7 @@ def main() -> int:
     if settings is not None:
         write_report(settings, args.command, report)
     print(json.dumps(report, indent=2))
-    return 0 if report["status"] in ("passed", "input_validated") else 1
+    return 0 if report["status"] in ("passed", "input_validated", "pending_review") else 1
 
 
 if __name__ == "__main__":

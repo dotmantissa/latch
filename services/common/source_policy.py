@@ -41,7 +41,7 @@ def public_https_url(value: str) -> str:
     # Numeric alternate address encodings and local-only names are not supplier hosts.
     if "." not in host or all(re.fullmatch(r"(?:0x[0-9a-f]+|[0-9]+)", x) for x in host.split(".")):
         raise ValueError("Public DNS hostname required")
-    if host.endswith((".local", ".localhost", ".internal", ".test", ".invalid")):
+    if host.endswith((".local", ".localhost", ".internal", ".test", ".invalid", ".example")):
         raise ValueError("Reserved hostname")
     decoded = unquote(parsed.path)
     if "%" in decoded or re.search(r"[\\\x00-\x1f\x7f]", decoded):
@@ -74,6 +74,7 @@ class SourceProfile(StrictRecord):
     terms_url: str | None = None
     main_selector: str = Field(min_length=1, max_length=300)
     terms_selector: str | None = Field(default=None, max_length=300)
+    asset_origins: list[str] = Field(default_factory=list, max_length=10)
     expires_at: datetime
 
     @field_validator("origin")
@@ -90,8 +91,19 @@ class SourceProfile(StrictRecord):
         for path in paths:
             if not path.startswith("/") or any(c in path for c in ("?", "#", "*", "\\")):
                 raise ValueError("P0 uses explicitly reviewed exact offer paths")
-            public_https_url("https://supplier.example" + path)
+            public_https_url("https://supplier.example.com" + path)
         return paths
+
+    @field_validator("asset_origins")
+    @classmethod
+    def public_asset_origins(cls, origins: list[str]) -> list[str]:
+        result = []
+        for origin in origins:
+            normalized = public_https_url(origin)
+            if urlsplit(normalized).path != "/":
+                raise ValueError("An asset origin cannot contain a path")
+            result.append(normalized.rstrip("/"))
+        return result
 
     @field_validator("terms_url")
     @classmethod

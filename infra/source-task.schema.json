@@ -101,6 +101,14 @@
           "default": null,
           "title": "Terms Selector"
         },
+        "asset_origins": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 10,
+          "title": "Asset Origins",
+          "type": "array"
+        },
         "expires_at": {
           "format": "date-time",
           "title": "Expires At",
