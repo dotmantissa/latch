@@ -6,9 +6,9 @@ Latch is being designed for people who need a complete equipment order, not a pr
 
 Before a purchase request is released, Latch checks those sources again. Changed or unavailable terms keep the request on hold. A release creates an internal purchase record. It does not place a supplier order, reserve stock or guarantee a price.
 
-This directory contains the architecture, design specification and brand assets. Application implementation has not started. No customer results, live integrations or security outcomes are claimed here.
+This repository contains the architecture, brand assets and initial runtime scaffolding. Application work follows the live feasibility prerequisites. No customer results, live integrations or security outcomes are claimed here.
 
-Start with [the architecture](ARCHITECTURE.md). Follow [the implementation roadmap](docs/IMPLEMENTATION.md) when work begins.
+Start with [the architecture](ARCHITECTURE.md). Follow [the implementation roadmap](docs/IMPLEMENTATION.md) and [the runtime setup](docs/P0.md).
 
 | Document | What it covers |
 | --- | --- |

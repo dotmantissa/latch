@@ -1,0 +1,215 @@
+{
+  "$defs": {
+    "BuyerItem": {
+      "additionalProperties": false,
+      "properties": {
+        "public_specification": {
+          "maxLength": 1000,
+          "minLength": 3,
+          "title": "Public Specification",
+          "type": "string"
+        },
+        "required_units": {
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Required Units",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "public_specification",
+        "required_units"
+      ],
+      "title": "BuyerItem",
+      "type": "object"
+    },
+    "BuyerSource": {
+      "additionalProperties": false,
+      "properties": {
+        "profile_id": {
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "profile_id",
+        "url"
+      ],
+      "title": "BuyerSource",
+      "type": "object"
+    },
+    "SourceProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[a-z0-9_]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "origin": {
+          "title": "Origin",
+          "type": "string"
+        },
+        "offer_paths": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 10,
+          "minItems": 1,
+          "title": "Offer Paths",
+          "type": "array"
+        },
+        "terms_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Terms Url"
+        },
+        "main_selector": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Main Selector",
+          "type": "string"
+        },
+        "terms_selector": {
+          "anyOf": [
+            {
+              "maxLength": 300,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Terms Selector"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "origin",
+        "offer_paths",
+        "main_selector",
+        "expires_at"
+      ],
+      "title": "SourceProfile",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Private operator input. No invented example buyer task is supplied.",
+  "properties": {
+    "schema_version": {
+      "default": 1,
+      "maximum": 1,
+      "minimum": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "name": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "currency": {
+      "pattern": "^USD$",
+      "title": "Currency",
+      "type": "string"
+    },
+    "budget_cents": {
+      "maximum": 100000000000,
+      "minimum": 1,
+      "title": "Budget Cents",
+      "type": "integer"
+    },
+    "required_by": {
+      "format": "date-time",
+      "title": "Required By",
+      "type": "string"
+    },
+    "timezone": {
+      "title": "Timezone",
+      "type": "string"
+    },
+    "delivery_basis": {
+      "maxLength": 500,
+      "minLength": 3,
+      "title": "Delivery Basis",
+      "type": "string"
+    },
+    "items": {
+      "items": {
+        "$ref": "#/$defs/BuyerItem"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "title": "Items",
+      "type": "array"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/BuyerSource"
+      },
+      "maxItems": 3,
+      "minItems": 1,
+      "title": "Sources",
+      "type": "array"
+    },
+    "profiles": {
+      "items": {
+        "$ref": "#/$defs/SourceProfile"
+      },
+      "maxItems": 3,
+      "minItems": 1,
+      "title": "Profiles",
+      "type": "array"
+    },
+    "public_html_task_confirmed": {
+      "title": "Public Html Task Confirmed",
+      "type": "boolean"
+    },
+    "consent_to_capture_and_inference": {
+      "title": "Consent To Capture And Inference",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "name",
+    "currency",
+    "budget_cents",
+    "required_by",
+    "timezone",
+    "delivery_basis",
+    "items",
+    "sources",
+    "profiles",
+    "public_html_task_confirmed",
+    "consent_to_capture_and_inference"
+  ],
+  "title": "BuyerTask",
+  "type": "object"
+}
