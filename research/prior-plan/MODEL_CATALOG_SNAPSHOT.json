@@ -1,0 +1,94 @@
+{
+  "retrieved_at_utc": "2026-11-03T13:29:50.483301+00:00",
+  "source": "https://api.vultrinference.com/v1/models",
+  "catalog_count": 35,
+  "status": "Public catalog metadata only; no authenticated inference, latency or quality test performed.",
+  "models": [
+    {
+      "id": "deepseek-v4.1-flash-1017",
+      "input_modalities": [
+        "text",
+        "image",
+        "file"
+      ],
+      "text_input_pricing": [
+        {
+          "type": "prompt",
+          "unit": "token",
+          "cost_usd": "0.00000015"
+        }
+      ],
+      "text_output_pricing": [
+        {
+          "type": "completion",
+          "unit": "token",
+          "cost_usd": "0.0000006"
+        }
+      ],
+      "datacenters": [
+        {
+          "country_code": "US",
+          "region": "sea"
+        }
+      ]
+    },
+    {
+      "id": "qwen3.8-27b",
+      "input_modalities": [
+        "text",
+        "image",
+        "file",
+        "video"
+      ],
+      "text_input_pricing": [
+        {
+          "type": "prompt",
+          "unit": "token",
+          "cost_usd": "0.00000015"
+        }
+      ],
+      "text_output_pricing": [
+        {
+          "type": "completion",
+          "unit": "token",
+          "cost_usd": "0.000001"
+        }
+      ],
+      "datacenters": [
+        {
+          "country_code": "US",
+          "region": "sea"
+        }
+      ]
+    },
+    {
+      "id": "qwen3.8-flash-next",
+      "input_modalities": [
+        "text",
+        "image",
+        "file",
+        "video"
+      ],
+      "text_input_pricing": [
+        {
+          "type": "prompt",
+          "unit": "token",
+          "cost_usd": "0.0000001"
+        }
+      ],
+      "text_output_pricing": [
+        {
+          "type": "completion",
+          "unit": "token",
+          "cost_usd": "0.0000002"
+        }
+      ],
+      "datacenters": [
+        {
+          "country_code": "US",
+          "region": "sea"
+        }
+      ]
+    }
+  ]
+}

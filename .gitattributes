@@ -1,0 +1,2 @@
+# Preserve upstream license bytes and their original line endings.
+assets/fonts/*-OFL.txt -text whitespace=-blank-at-eol,cr-at-eol

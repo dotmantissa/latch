@@ -1,0 +1,30 @@
+{
+  "fonts": [
+    {
+      "file": "assets/fonts/Manrope.ttf",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/manrope/Manrope%5Bwght%5D.ttf",
+      "sha256": "3ae11c49db0455a3cc33e37d380f20fdb8c7f8b41dc07625c177e3d87a9d6ae6",
+      "bytes": 164700
+    },
+    {
+      "file": "assets/fonts/Manrope-OFL.txt",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/manrope/OFL.txt",
+      "sha256": "58172e0c0fac2cda8a37b348164bb55e44b0e69051e557e92b1d3f6910141f7b",
+      "bytes": 4387
+    },
+    {
+      "file": "assets/fonts/DMSerifDisplay-Regular.ttf",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/dmserifdisplay/DMSerifDisplay-Regular.ttf",
+      "sha256": "8cc3643535edf039aa5d95440a8542735e9197e4f4b8d9303e980fefbf5ab616",
+      "bytes": 76580
+    },
+    {
+      "file": "assets/fonts/DMSerifDisplay-OFL.txt",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/dmserifdisplay/OFL.txt",
+      "sha256": "a3e5cdd67d4571dd0a24fcc968de0efde7ae97ef752daf0906e4767619dd7231",
+      "bytes": 4605
+    }
+  ],
+  "logo": "Original native SVG geometry and outlined Manrope wordmark authored for Latch; no image-generation service used.",
+  "render_tooling": "Temporary Pillow/CairoSVG/fonttools under /tmp/latch-design-tools; not an app dependency."
+}

@@ -1,0 +1,88 @@
+{
+  "seed": 1793714516810191212,
+  "themes": {
+    "light": {
+      "canvas": "#F6F2EB",
+      "surface": "#FFFCF7",
+      "subtle": "#EEE8DE",
+      "text": "#24201F",
+      "muted": "#665E5A",
+      "divider": "#D9D0C4",
+      "controlBorder": "#8C8179",
+      "accent": "#742F3A",
+      "accentHover": "#5B202B",
+      "accentText": "#FFFCF7",
+      "accentWash": "#F2E3E5",
+      "success": "#285E48",
+      "warning": "#80551C",
+      "danger": "#9C302C",
+      "info": "#355C7A"
+    },
+    "dark": {
+      "canvas": "#181618",
+      "surface": "#211E20",
+      "subtle": "#2B2528",
+      "text": "#F3EEE8",
+      "muted": "#BDB0AA",
+      "divider": "#4C4147",
+      "controlBorder": "#93838A",
+      "accent": "#E5A4AD",
+      "accentHover": "#F0BBC2",
+      "accentText": "#32151C",
+      "accentWash": "#3C252C",
+      "success": "#9ECBB6",
+      "warning": "#E4C38C",
+      "danger": "#FFB4AB",
+      "info": "#ACCAE4"
+    }
+  },
+  "type": {
+    "body": "Manrope",
+    "display": "DM Serif Display",
+    "table_numerals": "tabular",
+    "sizes_px": [
+      13,
+      14,
+      16,
+      18,
+      24,
+      28,
+      36,
+      48
+    ]
+  },
+  "space_px": [
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    32,
+    40,
+    48,
+    64
+  ],
+  "radius_px": {
+    "input": 6,
+    "paper": 2,
+    "dialog": 10
+  },
+  "motion_ms": {
+    "evidence": 180,
+    "tab": 120,
+    "dialog": 100,
+    "latch": 160,
+    "reduced": 0
+  },
+  "layout": {
+    "rail_px": 224,
+    "release_margin_px": 304,
+    "gap_px": 24,
+    "mobile_max_px": 767
+  },
+  "focus": {
+    "width_px": 2,
+    "offset_px": 2
+  }
+}

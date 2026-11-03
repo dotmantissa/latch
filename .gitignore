@@ -1,0 +1,30 @@
+# Local recovery and instruction files
+/TASKS.md
+[Aa][Gg][Ee][Nn][Tt].[Mm][Dd]
+[Aa][Gg][Ee][Nn][Tt][Ss].[Mm][Dd]
+# Credentials and private material
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+/private/
+/var/
+/artifacts/private/
+# Future implementation outputs
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.log
+.DS_Store
+
+# Project local runtimes and Python outputs
+.tools/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/

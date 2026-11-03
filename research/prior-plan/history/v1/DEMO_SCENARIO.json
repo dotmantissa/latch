@@ -1,0 +1,67 @@
+{
+  "label": "Synthetic procurement evaluation; no real offers or purchases",
+  "currency": "USD",
+  "money_unit": "cent",
+  "request": {
+    "sku": "USB-C-65W",
+    "required_units": 100,
+    "budget_cents": 110000,
+    "maximum_lead_days": 7,
+    "split_orders": false,
+    "tax_policy": "Fixture prices include any applicable tax; no tax engine"
+  },
+  "quotes": [
+    {
+      "supplier": "A",
+      "unit_price_cents": 780,
+      "minimum_order_units": 200,
+      "pack_size_units": 1,
+      "shipping_cents": 4000,
+      "lead_days": 5
+    },
+    {
+      "supplier": "B",
+      "unit_price_cents": 920,
+      "minimum_order_units": 1,
+      "pack_size_units": 1,
+      "shipping_cents": 6000,
+      "lead_days": 3
+    },
+    {
+      "supplier": "C",
+      "unit_price_cents": 860,
+      "minimum_order_units": 1,
+      "pack_size_units": 1,
+      "shipping_cents": 3000,
+      "lead_days": 12
+    }
+  ],
+  "expected": {
+    "A": {
+      "order_units": 200,
+      "total_cents": 160000,
+      "eligible": false,
+      "reason": "over_budget"
+    },
+    "B": {
+      "order_units": 100,
+      "total_cents": 98000,
+      "eligible": true,
+      "reason": "feasible"
+    },
+    "C": {
+      "order_units": 100,
+      "total_cents": 89000,
+      "eligible": false,
+      "reason": "late_delivery"
+    },
+    "selected_supplier": "B",
+    "budget_headroom_cents": 12000
+  },
+  "mutation": {
+    "supplier": "B",
+    "new_unit_price_cents": 970,
+    "new_total_cents": 103000,
+    "expected_action": "invalidate_old_approval_and_request_fresh_review"
+  }
+}

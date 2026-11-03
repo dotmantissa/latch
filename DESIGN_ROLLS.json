@@ -1,0 +1,27 @@
+{
+  "seed": 1793714516810191212,
+  "generator": "Python random.Random seeded from time.time_ns; one independent draw per axis before design/frontend assets",
+  "axes": {
+    "palette": {
+      "roll": 3,
+      "selected": "Oxblood with warm limestone"
+    },
+    "layout": {
+      "roll": 5,
+      "selected": "Wide document stage with a compact request rail"
+    },
+    "type": {
+      "roll": 2,
+      "selected": "Grotesk body with a display serif for totals and request names"
+    },
+    "motion": {
+      "roll": 1,
+      "selected": "Response to action only; no entrance or ambient animation"
+    },
+    "device": {
+      "roll": 1,
+      "selected": "A physical latch seam between reviewed evidence and the release action"
+    }
+  },
+  "frontend_code_written": false
+}
