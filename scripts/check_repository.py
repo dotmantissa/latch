@@ -15,6 +15,8 @@ names = (
     .split("\0")
 )
 patterns = [
+    re.compile(rb"npg_" + rb"[A-Za-z0-9]{10,}"),
+    re.compile(rb"postgres(?:ql)?://" + rb"[^/\s:]+:[^@\s]+@"),
     re.compile(rb"gh[pousr]_" + rb"[A-Za-z0-9]{30,}"),
     re.compile(rb"github_pat_" + rb"[A-Za-z0-9_]{30,}"),
     re.compile(rb"-----BEGIN " + rb"(?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
