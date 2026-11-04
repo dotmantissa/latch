@@ -275,7 +275,10 @@ def gate_report(settings: Settings) -> dict:
         "status": "pending",
         "scope": "p0_gate_inventory",
         "checks": checks,
-        "next_package": "P1 remains blocked until all live evidence is independently reviewed",
+        "next_package": (
+            "Live source/model/worker features remain gated; "
+            "provider independent work is authorized"
+        ),
     }
 
 

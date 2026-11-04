@@ -1,6 +1,6 @@
 # Trust boundaries, secrets and operations
 
-Implements the invariants in [ARCHITECTURE.md](../ARCHITECTURE.md). These are required controls and future verification steps. No cloud account, protected service or security test has been exercised by writing this plan.
+Implements the invariants in [ARCHITECTURE.md](../ARCHITECTURE.md). These are required controls and future verification steps. The identity and saved request controls have local HTTP and Neon integration checks. Supplier, model, isolated worker, release and deployment controls still require their live evidence.
 
 ## Threat model and data classes
 
@@ -17,7 +17,7 @@ Classify public source material, private buyer data, authentication secrets and 
 | Vultr inference key | Control runner service credential file, mode 0600 | Frontend bundle, Vite variables, model prompt, browser/container, logs/packet/source repository |
 | Vultr provisioning credential | Operator secure store only; not required in normal runtime | API, runner task, CI artifact, runtime image or client |
 | API CSRF/HMAC service key | API credential file0600 | Public config, URL/query, model or worker |
-| Password hash | Private SQLite users table | Logs, API response, export, screenshot |
+| Password hash | Private Neon Postgres users table | Logs, API response, export, screenshot |
 | Session raw token | Secure HttpOnly cookie only | localStorage, generated report, worker/model, URL |
 | Supervisor client/server key | Trusted control runner and worker service credential files | Container mounts/environment, browser/CDP, support logs |
 | Backup encryption key | Operator-managed separate secure storage | Same backup archive, source/deployment bundle, public media |
@@ -65,7 +65,7 @@ Set Referrer-Policy no-referrer, X-Content-Type-Options nosniff, secure cookies 
 1. Confirm real supported source task, event/account eligibility, current plan pricing and inference credit coverage. Do not provision on the strength of an assumed credit. No deployment is authorized in this planning task.
 2. When implementation/deployment is authorized, select control+worker in a suitable Vultr region/private network; generate credentials securely. Restrict SSH to operator key/source; close password/root login, patch OS and record image/build IDs.
 3. Configure firewall: control public80/443 plus operatorSSH; API loopback; worker supervisor private mTLS from control only; proxy public egress only; task cannot reach control/metadata. No public remote browser or Docker API.
-4. Build pinned dependencies/images with lockfiles; scan contents; test non-root Chromium/gVisor/limits. Record runtime/image/browser versions and SBOM. Verify linked SQLite includes WAL fix before migrations.
+4. Build pinned dependencies/images with lockfiles; scan contents; test non-root Chromium/gVisor/limits. Record runtime/image/browser versions and SBOM. Use direct Neon TLS access for checksum verified transactional migrations.
 5. Mount private persistent data, mode 0700; load server secrets from0600service credentials. Apply migrations once and provision named requester accounts without shell-history secrets.
 6. Run API, runner, supervisor and proxy under managed services with restart policy, resource budgets and graceful termination. Add orphan-sweeper/reconcile timer. Caddy serves built frontend and proxies API/SSE without buffering; persistent certificate storage and correct DNS are prerequisites.
 7. Verify readiness without exposing infrastructure: DB schema/runner heartbeat/worker reachability and last successful model capability check. Do not make public readiness trigger a paid model call on every request.
@@ -75,7 +75,7 @@ Set Referrer-Policy no-referrer, X-Content-Type-Options nosniff, secure cookies 
 
 ## Recovery, backups and retention
 
-Back up SQLite via its supported online backup interface to a consistent encrypted snapshot; do not copy only the main DB while ignoring WAL. Include immutable artifact manifest and separately encrypted artifacts. Test restore to an isolated path, verify schema/hashes/owner counts/release uniqueness and run a read-only receipt lookup. Never restore into a live writable store without a stopped/controlled service procedure.
+Before changing populated Neon data, retain a project recovery point or consistent pg_dump using the direct connection. Confirm the actual Neon plan history window instead of assuming retained backups. Encrypt operator dumps and artifacts with separately managed keys. Restore to an isolated branch/database and verify schema, hashes, owner counts and release uniqueness before switching a running service. Backup/restore and receipt recovery remain future validation gates; the current migration verification covers fresh schema creation and transaction rollback only.
 
 A deploy rollback is permitted only if binary/schema compatibility is explicit. Do not run an old binary against a new schema. New runner/supervisor reconciliation must fence old completions and clean only its job labels. A mid-release failure before commit leaves no receipt; after commit it recovers the same receipt by idempotency/approval identity.
 
@@ -83,6 +83,8 @@ Initial retention proposal: unreleased capture data7 days after last activity; p
 
 ## Operations and budgets
 
-Observe queue age, job durations, source failures, review/abstention, model tokens/cost, rejected tools, attempt cleanup, runner heartbeat, disk space and database busy/corruption alarms. Initial caps:1activejob/user and global1; up to3 sources,6 pages,12 model decisions;10 inspect/recheck requests/user/hour; configurable daily paid-usage ceiling enforced before starting new model work. Provider bills can exceed estimates from images/reasoning; reconcile actual usage. A circuit breaker exposes a plain unavailable state rather than synthetic results.
+Observe queue age, job durations, source failures, review/abstention, model tokens/cost, rejected tools, attempt cleanup, runner heartbeat, disk space and database connection/lock failures. Initial caps:1activejob/user and global1; up to3 sources,6 pages,12 model decisions;10 inspect/recheck requests/user/hour; configurable daily paid-usage ceiling enforced before starting new model work. Provider bills can exceed estimates from images/reasoning; reconcile actual usage. A circuit breaker exposes a plain unavailable state rather than synthetic results.
 
 Use safe operator-only diagnostics, no raw environment dumps. Incident actions: suspend new work, preserve minimal safe evidence, revoke exposed credentials if applicable, contain worker, restore/reconcile state, rerun the affected real acceptance path, then resume. Document both adverse and successful outcomes.
+
+Current local limitation: the login limiter is bounded and process local. Run one API process until a shared throttle and queue limits are implemented. Secrets remain in private mode 0600 files. PostgreSQL transaction locks serialize owner commands and session revocation. Draft archive retains immutable versions and does not claim deletion.

@@ -56,8 +56,41 @@ def test_deadline_zone_and_strict_mutation_fields():
     data["timezone"] = "Africa/Lagos"
     with pytest.raises(ValidationError):
         RequestInput.model_validate(data)
+
+
+def test_timestamp_type_blank_specs_and_material_order():
+    data = worksheet_data()
+    data["required_by"] = 1234567890
+    with pytest.raises(ValidationError):
+        RequestInput.model_validate(data)
+    data = worksheet_data()
+    data["items"][0]["specification"] = "   "
+    with pytest.raises(ValidationError):
+        RequestInput.model_validate(data)
+    data = worksheet_data()
+    data["items"].append({**data["items"][0], "key": "item_2"})
+    first = RequestInput.model_validate(data)
+    data["items"].reverse()
+    second = RequestInput.model_validate(data)
+    assert first.material_hash() == second.material_hash()
     data = worksheet_data()
     data["approved"] = True
+    with pytest.raises(ValidationError):
+        RequestInput.model_validate(data)
+
+
+@pytest.mark.parametrize(
+    "zone,local,instant",
+    [
+        ("America/New_York", "2026-11-01T01:30", "2026-11-01T05:30:00Z"),
+        ("America/New_York", "2026-11-01T01:30", "2026-11-01T06:30:00Z"),
+        ("America/New_York", "2027-03-14T02:30", "2027-03-14T07:30:00Z"),
+        ("Australia/Lord_Howe", "2027-04-04T01:45", "2027-04-03T14:45:00Z"),
+    ],
+)
+def test_ambiguous_and_missing_wall_clock_deadlines_are_rejected(zone, local, instant):
+    data = worksheet_data()
+    data.update(timezone=zone, required_by_local=local, required_by=instant)
     with pytest.raises(ValidationError):
         RequestInput.model_validate(data)
 

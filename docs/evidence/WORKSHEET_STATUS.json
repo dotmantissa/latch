@@ -1,0 +1,55 @@
+{
+  "at": "2026-11-04T09:27:15.123313+00:00",
+  "status": "passed",
+  "scope": "real HTTPS/browser/Neon saved worksheet assertions",
+  "layouts": [
+    "320/light",
+    "390/light",
+    "768/light",
+    "1024/light",
+    "1440/light",
+    "1920/light",
+    "320/dark",
+    "390/dark",
+    "768/dark",
+    "1024/dark",
+    "1440/dark",
+    "1920/dark"
+  ],
+  "save_reload_another_tab": true,
+  "server_restart": true,
+  "historical_version_readonly": true,
+  "archive_reload": true,
+  "session_expiry_reauth_logout": true,
+  "version_conflict": true,
+  "theme_persistence": true,
+  "system_theme_changes": true,
+  "axe_wcag22aa_layouts": [
+    "320/light",
+    "1440/light",
+    "320/dark",
+    "1440/dark"
+  ],
+  "keyboard_focus": true,
+  "zoom_200_percent": true,
+  "reduced_motion": true,
+  "console_errors": 0,
+  "live_supplier_or_vultr_acceptance": false,
+  "regression": {
+    "command": "LATCH_TEST_DATABASE_URL_FILE=private/database-url .venv/bin/pytest --tb=short",
+    "passed": 95,
+    "duration_seconds": 344.55,
+    "real_neon_checks": 8
+  },
+  "build": "TypeScript and Vite passed",
+  "lint": "Ruff and shell syntax passed",
+  "human_visual_review": "Desktop and mobile screenshots in both themes inspected",
+  "cleanup": "Browser server and exact isolated test schemas removed; checks exited successfully",
+  "limitations": [
+    "No live buyer or supplier acceptance",
+    "No Vultr inference or isolated worker validation",
+    "No approval, recapture, release or export",
+    "No PostgreSQL backup or point in time restore validation",
+    "No public deployment"
+  ]
+}

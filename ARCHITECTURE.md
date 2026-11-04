@@ -1,6 +1,6 @@
 # Latch architecture and implementation contract
 
-Version 1, November 3, 2026. This is a local implementation blueprint. No repository, application, cloud resource or live result is created by this document. The user's latest instruction prohibits repository creation, commits and push. The product name is Latch; QuoteProof appears only in retained research history.
+Version 2, November 4, 2026. The user authorizes implementation and commits per verified step. Provider independent work may proceed while live Vultr gates are deferred. Application storage uses the supplied Neon Postgres database. Source capture, model review and release remain gated on real evidence. The product name is Latch; QuoteProof appears only in retained research history.
 
 Read this document first, then [the implementation roadmap](docs/IMPLEMENTATION.md), [data and API contracts](docs/CONTRACTS.md), [visual specification](docs/DESIGN.md), [security and operations](docs/SECURITY.md) and [live acceptance plan](docs/ACCEPTANCE.md). [COPY.json](COPY.json), [DESIGN_TOKENS.json](DESIGN_TOKENS.json) and [DESIGN_ROLLS.json](DESIGN_ROLLS.json) are authoritative planning assets. An implementation may tighten a limit but must not silently weaken a product/security invariant.
 
@@ -60,7 +60,7 @@ I10 Failures, reviews, abstentions and unverified facts remain visible in evalua
 
 I11 Frontend copy, titles, accessible names and README use human prose, no emoji/em dash/unnecessary hyphen. Supplier/user source punctuation remains intact as evidence.
 
-I12 Repository creation, staging, commits and push remain prohibited until explicitly reauthorized. Any later authorized commits must be solely dotmantissa <negativemantissa@gmail.com> with no coauthor trailer. This package itself does not enable such actions.
+I12 Authorized commits use solely dotmantissa <negativemantissa@gmail.com> as author and committer, with no coauthor trailer. Public deployment and submission require separate authorization.
 
 ## 4. Stack decisions and version policy
 
@@ -73,16 +73,16 @@ I12 Repository creation, staging, commits and push remain prohibited until expli
 | Icons | lucide-react | Explicit imports, verify installed exports, accessible labels, no Unicode substitutes |
 | API | Python 3.13, FastAPI, Pydantic 2 | HTTP schemas and strict domain models own contracts; generate frontend types from OpenAPI, do not hand-maintain divergent schemas |
 | Model client | HTTPX to Vultr chat endpoint | Explicit request timeout, schema validation, token/step limit and usage accounting; no other provider fallback |
-| Control job runner | Separate Python process | Claims SQLite jobs via leases; no FastAPI in-process background task for durable work |
-| Store | SQLite WAL on local persistent disk | SQLite>=3.51.3 or a verified backport of the March2026 WAL fix. Verify linked runtime, not Python version alone; foreign keys/busy timeout/full synchronous enabled |
+| Control job runner | Separate Python process | Claims Postgres jobs via leases and row locks; no FastAPI in-process background task for durable work |
+| Store | Neon Postgres, dedicated latch schema | Pooled application connections over TLS, direct transactional migrations, numbered checksums, foreign keys and immutable version triggers |
 | Worker | Private supervisor plus pinned browser image | Non-root Chromium, compatible seccomp/gVisor policy, no Docker runtime control from app/model; pinned Playwright package/browser/image versions |
 | Gateway | Caddy | Same-origin frontend/API/SSE and public automatic HTTPS with persistent certificate storage |
 | Artifacts | Local encrypted persistent volume | App-owned ACL routes; no public bucket, no permanent signed URLs, consented retention and safe export |
 | Tests | pytest, real Playwright browser, axe, contract checks | Domain invariants and real-service acceptance. Never patch network routes into successful API responses |
 
-Do not install or generate a full app during this planning task. At implementation start, resolve exact supported versions from official docs, install them under the project, save lockfiles and record hashes. Never claim placeholder versions were tested.
+Implementation resolves exact supported versions from official documentation, installs them under the project, saves lockfiles and records provenance. Never claim placeholder versions were tested.
 
-SQLite's documented WAL fix, Playwright's warnings about running untrusted pages as root, and Node's support schedule informed these gates. [SQLite WAL](https://www.sqlite.org/wal.html), [Playwright container guidance](https://playwright.dev/python/docs/docker), [Node releases](https://nodejs.org/en/about/previous-releases)
+Neon connection pooling, Playwright's warnings about running untrusted pages as root, and Node's support schedule inform these gates. [Neon pooling](https://neon.com/docs/connect/connection-pooling), [Playwright container guidance](https://playwright.dev/python/docs/docker), [Node releases](https://nodejs.org/en/about/previous-releases)
 
 ## 5. Process architecture and deployment topology
 
@@ -91,7 +91,7 @@ flowchart LR
   U[Requester browser] --> C[Caddy HTTPS]
   C --> W[React static application]
   C --> A[FastAPI API]
-  A --> D[(SQLite and event log)]
+  A --> D[(Neon Postgres and event log)]
   J[Control job runner] --> D
   J --> V[Vultr Serverless Inference]
   J --> S[Private worker supervisor]
@@ -168,7 +168,7 @@ Release is asynchronous because rechecking involves real network work:
 2. Runner fetches every decision source through the same isolated profile/content contract. This includes incomplete/late offers because new terms could change ranking. A source cannot be omitted without a new reviewed comparison.
 3. Compare deterministic fingerprints and capture completeness. Changed content sets `source_changed`, stores new snapshots/diff, invalidates approval and stops. The model may explain the diff but cannot suppress it as harmless. Unavailable sources set `source_unavailable`; an unchanged earlier snapshot is not a substitute.
 4. For unchanged sources, server checks all per-source captures completed no more than60 seconds ago and approval remains unexpired. Detect system-clock rollback against attempt monotonic elapsed time; an unsafe clock/lease stops commit.
-5. Recompute temporal eligibility against the current proposed order/release time and stated delivery basis, even if source text is unchanged. A passed deadline or changed latest-arrival outcome blocks release and creates a new comparison requiring review. Begin a short `BEGIN IMMEDIATE` database transaction; reread owner session validity, request/comparison/policy/profile versions, approval hash/expiry, selected candidate feasibility at commit time, job fence token and immutable recheck manifest. There is no network I/O inside the transaction.
+5. Recompute temporal eligibility against the current proposed order/release time and stated delivery basis, even if source text is unchanged. A passed deadline or changed latest-arrival outcome blocks release and creates a new comparison requiring review. Begin a short Postgres transaction with row locks; reread owner session validity, request/comparison/policy/profile versions, approval hash/expiry, selected candidate feasibility at commit time, job fence token and immutable recheck manifest. There is no network I/O inside the transaction.
 6. Insert release row with unique approval/packet identity, immutable snapshot payload and manifest; append receipt/audit/event state; mark attempt succeeded and commit. Duplicate idempotency key with identical intent returns same attempt/receipt; same key with different intent returns 409. A unique approval constraint stops different keys releasing the same approved packet twice.
 7. If process dies before commit, no receipt exists; lease recovery can retry after a fresh recheck. If it dies after commit but before response, lookup returns the existing receipt. Do not restart by creating another release.
 
@@ -202,12 +202,12 @@ No hyphenated marketing fragments, em dash or emoji in app-controlled text/metad
 
 ## 13. Feature implementation sequence and package structure
 
-Detailed work packages and finish gates are in [IMPLEMENTATION.md](docs/IMPLEMENTATION.md). Do not start with decorative landing content. First prove real supplier/source compatibility and live Vultr browser/inference, then build the branded vertical path through saved draft, evidence review, approval, source recheck and durable release. The first complete UI should be the workbench with real data and full error states.
+Detailed work packages and finish gates are in [IMPLEMENTATION.md](docs/IMPLEMENTATION.md). Do not start with decorative landing content. The user explicitly deferred live Vultr prerequisites for the domain, identity and saved worksheet packages. Prove real supplier/source compatibility and live Vultr browser/inference before enabling capture, evidence review, approval, source recheck and durable release. The first complete UI should be the workbench with real data and full error states.
 
-Future structure, to be created only when implementation begins:
+Implemented local structure and reserved live integration modules:
 
 ```text
-apps/web/             React routes, components, CSS, copy imports and generated API types
+src/                  React routes, components, CSS, copy imports and generated API types
 services/api/         FastAPI routes, auth, policy, rules and transactional release
 services/runner/      Durable job consumer, model tools, extraction and recheck orchestration
 services/supervisor/  Private task API, container lifecycle and artifact quarantine
@@ -223,7 +223,7 @@ Keep domain arithmetic and transition logic independent from HTTP and model clie
 
 ## 14. Delivery, verification and remaining gates
 
-[SECURITY.md](docs/SECURITY.md) covers hardening/deployment/recovery; [ACCEPTANCE.md](docs/ACCEPTANCE.md) defines actual live checks and required artifacts. The result must include public HTTPS entry, authenticated real flow, setup documentation, accurate README/architecture, real video and event form materials. No repository/deploy/submission action is authorized in this task. A later implementation request still must respect the explicit no-Git instruction until changed.
+[SECURITY.md](docs/SECURITY.md) covers hardening/deployment/recovery; [ACCEPTANCE.md](docs/ACCEPTANCE.md) defines actual live checks and required artifacts. The result must include public HTTPS entry, authenticated real flow, setup documentation, accurate README/architecture, real video and event form materials. Repository creation, implementation commits and push are authorized. Public deployment and submission still require separate authorization.
 
 Real tests must traverse frontend→API→database/runner→actual Vultr model→sandbox/real supplier→evidence→human review→approval→fresh recapture→durable record→download. No test may claim this complete by replacing any boundary with a mock. Isolated pure rule assertions are acceptable calculations, not substitutes for real integration. Security probes use scoped controlled inputs on the actual isolated worker, not a fabricated vendor pretending to be a customer.
 

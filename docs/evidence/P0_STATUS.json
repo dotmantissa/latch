@@ -21,8 +21,8 @@
       "requires": "Actual isolated browser, allowed fetch, denied egress, timeout and cleanup"
     }
   },
-  "next_package": "P1 remains blocked until all live evidence is independently reviewed",
-  "implementation": "P0 runtime and live probe tooling available; application packages P1 and later remain pending.",
+  "next_package": "Provider independent implementation is authorized; live source/model/worker actions remain gated",
+  "implementation": "P0 probe tooling and provider independent Neon storage, identity and saved worksheet are implemented. Live source/model/worker acceptance remains pending.",
   "verification": {
     "local_policy_and_storage_checks": 68,
     "bootstrap": "passed",
@@ -31,5 +31,6 @@
     "live_supplier_capture": "not_run",
     "vultr_inference": "not_run",
     "worker_isolation": "not_run"
-  }
+  },
+  "authorization_updated_at": "2026-11-04T09:29:21.216410+00:00"
 }

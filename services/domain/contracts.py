@@ -51,6 +51,13 @@ class RequestItem(StrictRecord):
     public_specification: str = Field(min_length=3, max_length=1000)
     required_units: Quantity
 
+    @field_validator("specification", "public_specification")
+    @classmethod
+    def meaningful_specification(cls, value: str) -> str:
+        if len(value.strip()) < 3:
+            raise ValueError("Enter the required specification")
+        return value
+
 
 class RequestSource(StrictRecord):
     label: str = Field(min_length=1, max_length=100)
@@ -92,6 +99,13 @@ class RequestInput(StrictRecord):
             raise ValueError("An explicit timezone and millisecond precision are required")
         return value.astimezone(UTC)
 
+    @field_validator("required_by", mode="before")
+    @classmethod
+    def timestamp_type(cls, value):
+        if not isinstance(value, (str, datetime)):
+            raise ValueError("An ISO timestamp with an explicit timezone is required")
+        return value
+
     @model_validator(mode="after")
     def consistent(self) -> "RequestInput":
         try:
@@ -101,6 +115,11 @@ class RequestInput(StrictRecord):
         # Round-trip to catch DST gaps and a client that submits another zone's instant.
         if self.required_by.astimezone(zone).strftime("%Y-%m-%dT%H:%M") != self.required_by_local:
             raise ValueError("The local deadline does not match its timezone and UTC instant")
+        local = datetime.fromisoformat(self.required_by_local)
+        if local.replace(tzinfo=zone, fold=0).utcoffset() != local.replace(
+            tzinfo=zone, fold=1
+        ).utcoffset():
+            raise ValueError("Choose an unambiguous local deadline")
         if len({item.key for item in self.items}) != len(self.items):
             raise ValueError("Item keys must be unique")
         if len({source.url for source in self.sources}) != len(self.sources):
@@ -112,6 +131,15 @@ class RequestInput(StrictRecord):
         data["budget_cents"] = money_cents(data.pop("budget"))
         data["required_by"] = utc_string(self.required_by)
         return data
+
+    def material_hash(self) -> str:
+        snapshot = self.snapshot()
+        snapshot["items"] = sorted(snapshot["items"], key=lambda item: item["key"])
+        snapshot["sources"] = sorted(
+            snapshot["sources"],
+            key=lambda source: (source["profile_id"], source["profile_version"], source["url"]),
+        )
+        return content_hash(snapshot)
 
 
 class UserView(StrictRecord):

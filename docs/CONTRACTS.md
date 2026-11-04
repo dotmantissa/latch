@@ -1,18 +1,18 @@
 # Data, API and worker contracts
 
-This is the detailed contract for [ARCHITECTURE.md](../ARCHITECTURE.md). Tables, routes and messages below are implementation instructions, not already available services. Display text comes from [COPY.json](../COPY.json). Never return internal secrets or infrastructure details in public errors.
+This is the detailed contract for [ARCHITECTURE.md](../ARCHITECTURE.md). The identity, profile admission and versioned request API are implemented. Capture, review, approval, job, release and export contracts below remain implementation instructions. See LOCAL.md for the available workflow. Display text comes from [COPY.json](../COPY.json). Never return internal secrets or infrastructure details in public errors.
 
 ## Representation rules
 
 IDs are server-generated UUIDv7/UUIDv4 opaque strings; choose one library and pin it. Human request references are a separate nonauthorizing sequence, such as LCH plus a numeric suffix, not a security identifier. Store UTC timestamps as integer epoch milliseconds and serialize ISO8601Z strings. Money is integer cents, quantities/pack sizes integers, USD only, with bounds from the architecture. Required deadline stores UTC instant, requester timezone and the local entered value/basis.
 
-Canonical hash input has `schema_version`, deterministic sorted keys, integer cents, explicitnulls and UTC strings. Do not hash a pretty-printed UI string or generated description. Source set/order is canonicalized by supplier/source IDs; material line order by required_item_id. An immutable comparison/policy/hash version is stored with each approval. Specify hash algorithmSHA-256; do not call this a cryptographic signature or independently verifiable source truth.
+Canonical hash input has `schema_version`, deterministic sorted keys, integer cents, explicitnulls and UTC strings. Do not hash a pretty-printed UI string or generated description. Source order is canonicalized by profile ID, profile version and canonical URL; material line order by stable required item key. The worksheet preserves entered order separately. An immutable comparison/policy/hash version is stored with each approval. Specify hash algorithmSHA-256; do not call this a cryptographic signature or independently verifiable source truth.
 
 API accepts application/json with2 MiB request body cap; source text/artifacts travel through the private worker protocol, not a public upload endpoint. Strict schemas reject unknown fields on mutations. Mutations require authenticated owner, CSRF, Origin, version precondition and idempotency where stated. URL validation/profile admission is server-owned. No inlineHTML is accepted as a supplier source.
 
 ## Storage model and migrations
 
-Use SQLite foreign_keys=ON, WAL, synchronous=FULL and busy_timeout5000ms on every connection. Verify fixed SQLite runtime before creating the store. Migrations are numbered and applied by a single operator process before app start; create backup first, record schema version and refuse newer/unknown schema on old binaries. One node owns the writable database on local disk, never NFS or a synced cloud folder.
+Use the supplied Neon Postgres database with a dedicated latch schema. Application queries use its pooled TLS connection; migrations use the corresponding direct endpoint. Disable automatic prepared statements and set search_path, statement_timeout and lock_timeout within each transaction for pool compatibility. Migrations are numbered and checksum verified, serialized by an advisory transaction lock, and run explicitly before app startup. Refuse newer or altered schemas. Test new migrations in an isolated environment and retain a recovery point before changing populated data. The initial schema is new and empty; it does not alter public tables.
 
 | Table | Required columns and constraints |
 | --- | --- |
@@ -79,7 +79,7 @@ All paths below are under/api/v1 except health. Return a JSON envelope with data
 | POST /auth/logout | empty→204 | CSRF, revoke session, expire cookie, terminate streams |
 | GET /source-profiles | admitted source labels/origin support | No infra settings; owner session; operator-only write outside public API |
 | GET /requests | cursor/limit≤50→authorized summaries | No seeded/demo rows; server pagination; exact unknown total handling |
-| POST /requests | name/budget/deadline/items/sources→201 | Idempotency; strict bounds; create immutablev1 |
+| POST /requests | name/USD decimal budget/deadline+local basis/items/sources→201 | Idempotency; strict bounds; create immutablev1 |
 | GET /requests/{id} | current versions/status/reasons | Owner-scoped ETag; no unauth source values |
 | PATCH /requests/{id} | complete edit or explicit patch→new version | If-Match required; preserve old version; revoke dependent approval |
 | POST /requests/{id}/inspections | current_version→202job | Idempotency; deny unsupported source/profile; real work queued |
@@ -102,7 +102,7 @@ All paths below are under/api/v1 except health. Return a JSON envelope with data
 
 409 codes: VERSION_CHANGED, IDEMPOTENCY_MISMATCH, APPROVAL_REVOKED, SOURCE_SET_CHANGED, SELECTION_NOT_READY, ALREADY_RELEASED with authorized receipt lookup.412 VERSION_PRECONDITION for stale If-Match.422 validation/UNSUPPORTED_SOURCE/UNSUPPORTED_TERMS.401 SESSION_REQUIRED/REAUTH_REQUIRED;403 CSRF_ORIGIN_REJECTED.429 RATE_LIMIT/QUEUE_LIMIT;502 PROVIDER_UNAVAILABLE;503 WORKER_UNAVAILABLE;504 INSPECTION_TIMEOUT. Provider errors are categorized, never copied verbatim.
 
-Mutating requests use `Idempotency-Key` where listed, stored with owner+route+canonical intent hash. TTL 24 hours for drafts/jobs; approval→release uniqueness retained permanently with the release record. Returning an old key's result never crosses owner scope. HTTP GET never approves, releases or starts paid model work.
+Mutating requests use `Idempotency-Key` where listed, stored with owner+route+canonical intent hash. Draft intent keys are retained until an operator retention policy is implemented, and cannot silently perform another command after 24 hours. Future job TTL is 24 hours; approval→release uniqueness retained permanently with the release record. Returning an old key's result never crosses owner scope. HTTP GET never approves, releases or starts paid model work.
 
 ## Worker and model protocol
 

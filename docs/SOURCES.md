@@ -12,6 +12,8 @@ Sources consulted November 3, 2026. The architecture is our design; the links su
 | [Node release schedule](https://nodejs.org/en/about/previous-releases) | Supported LTS rather than the existing shell's Node 20 |
 | [Python 3.13](https://docs.python.org/3.13/) | Explicit backend runtime family |
 | [FastAPI deployment](https://fastapi.tiangolo.com/deployment/) | API service/process deployment considerations |
+| [Neon pooling](https://neon.com/docs/connect/connection-pooling) | Transaction pool behavior, direct migration connection and transaction local settings; reviewed November 4, 2026 |
+| [Psycopg 3](https://www.psycopg.org/psycopg3/) | Pinned Python Postgres driver and explicit transaction boundaries |
 | [SQLite WAL](https://www.sqlite.org/wal.html) | Single-host WAL behavior, contention and the documented March2026 WAL reset fix |
 | [Playwright Python containers](https://playwright.dev/python/docs/docker) | Browser/package version alignment and root/untrusted-page warnings |
 | [gVisor Docker setup](https://gvisor.dev/docs/user_guide/quick_start/docker/) | Runtime installation/compatibility spike |

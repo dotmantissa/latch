@@ -122,7 +122,7 @@ def insert_version(conn, owner_id, request_id, version: int, worksheet: RequestI
     snapshot, at = worksheet.snapshot(), now_ms()
     conn.execute(
         "INSERT INTO request_versions VALUES(%s,%s,%s,%s,%s)",
-        (request_id, version, Jsonb(snapshot), content_hash(snapshot), at),
+        (request_id, version, Jsonb(snapshot), worksheet.material_hash(), at),
     )
     for position, item in enumerate(worksheet.items):
         conn.execute(

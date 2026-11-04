@@ -147,6 +147,10 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
             request.state.correlation,
         )
 
+    @app.exception_handler(Exception)
+    async def internal_error(request: Request, error: Exception):
+        return failure(ApiError(500, "INTERNAL_ERROR"), request.state.correlation)
+
     @app.middleware("http")
     async def boundary(request: Request, call_next):
         request.state.correlation = str(uuid4())
@@ -236,11 +240,12 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
         except ValueError:
             username = ""
         with database(url, schema=settings.database_schema) as conn:
-            user = conn.execute("SELECT * FROM users WHERE username=%s", (username,)).fetchone()
+            user = conn.execute(
+                "SELECT * FROM users WHERE username=%s FOR UPDATE", (username,)
+            ).fetchone()
             valid = verify_password(user["password_hash"] if user else DUMMY_HASH, body.password)
             if not valid or not user or not user["active"]:
                 raise ApiError(401, "LOGIN_FAILED", "error.login")
-            conn.execute("SELECT id FROM users WHERE id=%s FOR UPDATE", (user["id"],))
             # Rotate an existing browser session, preserving other independent sessions.
             prior = request.cookies.get(COOKIE)
             if prior:

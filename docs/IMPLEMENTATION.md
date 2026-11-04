@@ -1,28 +1,28 @@
 # Implementation roadmap and work packages
 
-This is a future implementation checklist, not a record of completed features. Root TASKS.md remains the one local recovery checklist and is not a deliverable to commit. The user now authorizes repository creation, a commit for each implementation step and push to https://github.com/dotmantissa/latch. Use only dotmantissa <negativemantissa@gmail.com> as author/committer with no coauthor trailer. Deployment and submission require separate authorization.
+This roadmap defines finish gates. The provider independent foundation, identity and saved worksheet are implemented; their checks are described in [LOCAL.md](LOCAL.md) and [worksheet evidence](evidence/WORKSHEET_STATUS.json). PostgreSQL backup/restore and release constraints remain deferred alongside the live workflow. Live source, model, worker, review and release packages remain pending. Root TASKS.md remains the one local recovery checklist and is not a deliverable to commit. The user now authorizes repository creation, a commit for each implementation step and push to https://github.com/dotmantissa/latch. Use only dotmantissa <negativemantissa@gmail.com> as author/committer with no coauthor trailer. Deployment and submission require separate authorization.
 
-Package order follows dependencies, not page decoration. Each package finishes with its named evidence and a TASKS.md update. Frontend work must begin from the recorded design roll/token plan and use real API data; an empty/error state is preferable to fabricated content.
+Package order follows dependencies, not page decoration. Each package finishes with its named evidence and a TASKS.md update. The user explicitly authorizes deferring live P0 to implement the provider independent packages and using Neon Postgres instead of SQLite. Frontend work must begin from the recorded design roll/token plan and use real API data; an empty/error state is preferable to fabricated content.
 
 ## P0. Resolve real source and environment feasibility
 
 Dependencies: approved architecture and access to a real supported buyer/source task. Confirm the buyer actually uses no-login publicHTML offers, exact stock/quantity/delivery terms and a three-item scope. Collect accessible source URLs/consented evidence without unauthorized outreach. Record unknown support explicitly. If essential information is only in private PDF/email/portal, stop and resolve scope; do not substitute fictional pages.
 
-When app implementation is authorized, create runtime scaffolding without initializingGit. Install Node 24LTS and compatible exact frontend packages, Python 3.13 backend, fixed SQLite runtime and pinned browser image. Read installed/current docs, save locks, record version output. Validate real Vultr key access with a text/tool schema call and screenshot input. Verify non-root browser/gVisor/seccomp/CPU/memory/time/egress/cleanup on the actual worker. No alternate provider or network mock.
+Runtime scaffolding and Git initialization are complete under the user authorization. Install Node 24LTS and compatible exact frontend packages, Python 3.13 backend, fixed SQLite runtime and pinned browser image. Read installed/current docs, save locks, record version output. Validate real Vultr key access with a text/tool schema call and screenshot input. Verify non-root browser/gVisor/seccomp/CPU/memory/time/egress/cleanup on the actual worker. No alternate provider or network mock.
 
-Finish evidence: real source compatibility record, dependency manifest, authenticated model usage, actual screenshot capture, positive allowed fetch, denied metadata/private fetch, actual timeout and cleanup. No implementation/UI claim before this gate. Feasibility is a hard dependency for the rest.
+Finish evidence: real source compatibility record, dependency manifest, authenticated model usage, actual screenshot capture, positive allowed fetch, denied metadata/private fetch, actual timeout and cleanup. This gate remains a hard dependency for source/model/worker features. Domain, identity and persisted draft implementation may proceed under the explicit deferral authorization.
 
 ## P1. Contracts, domain and storage foundation
 
-Create typed models from CONTRACTS.md, migrations and strict numeric/time/source validators. Implement versioned request/items/source tables, owner scoping, immutable comparisons/reviews, approval/release uniqueness and events. Domain functions are pure and cannot import model clients. Configure correct SQLite pragmas/fix and validate runtime. Implement canonical packet/content hashing with versioned normalization and explicitnulls.
+Create typed models from CONTRACTS.md, migrations and strict numeric/time/source validators. Implement versioned request/items/source tables, owner scoping, immutable comparisons/reviews, approval/release uniqueness and events. Domain functions are pure and cannot import model clients. Use pooled Neon Postgres application connections and direct transactional migrations with version checks, immutable triggers and row locks. Implement canonical packet/content hashing with versioned normalization and explicitnulls.
 
 Create error taxonomy and generate OpenAPI/TypeScript types from actual server schemas. Add rule assertions using real captured/independently checked supported inputs, including an incomplete offer and pack conversion if observed; do not fabricate a successful live task to satisfy coverage. Mathematical boundary assertions are allowed as unit checks, clearly separate from live acceptance.
 
-Finish evidence: migration forward/restore on actual localDB, strict validation rejection, null-vs-zero behavior, deterministic hash across process restarts, unique release constraints and cross-request reference denial. No broad in-memoryfake database used to claim durable behavior.
+Finish evidence: migration forward/restore on actual Neon database, strict validation rejection, null-vs-zero behavior, deterministic hash across process restarts, unique release constraints and cross-request reference denial. No broad in-memoryfake database used to claim durable behavior.
 
 ## P2. Identity, application shell and brand
 
-Implement account provisioning throughTTY, Argon2id login, cookie sessions, reauth, CSRF/Origin and logout/revocation. Add owner checks to every resource route, SSE/export/artifact included. Use a real localDB and actual HTTP login; no client-only auth flag. Rate-limit password work and queue creation.
+Implement account provisioning throughTTY, Argon2id login, cookie sessions, reauth, CSRF/Origin and logout/revocation. Add owner checks to every resource route, SSE/export/artifact included. Use a real Neon database and actual HTTP login; no client-only auth flag. Rate-limit password work and queue creation.
 
 Build React routes, CSS token/theme bootstrap, fonts/licenses, lucide icons and the actual provided mark/favicon assets. Create the persistent request rail/wide document stage/release seam, keyboard navigation, theme switch and meaningful empty/loading/error states. Route/title/copy entries must match COPY.json. Do not write fake requests to decorate the shell. Implement responsive fallbacks before adding complex evidence interaction.
 
@@ -86,7 +86,7 @@ Git creation, commits per implementation step and push are now explicitly author
 
 ## Dependency graph and cut lines
 
-P0→P1→P2/P3→P4→P5→P6→P7→P8→P9, with visual shell work after token plan and alongside contracts only once the real-source spike passes. Keep one complete real vertical path ahead of optional refinements. No agent delegation is requested by this document.
+P0→P1→P2/P3→P4→P5→P6→P7→P8→P9, with visual shell work after token plan and alongside contracts only under the explicit deferral authorization, with live source actions disabled until the real source spike passes. Keep one complete real vertical path ahead of optional refinements. No agent delegation is requested by this document.
 
 If source fit fails, revise scope before implementation. If model adds no value, reassess competitiveness. If hardened browser fails, resolve/choose a verified permitted boundary; do not silently disable sandboxing. If recapture is not reliable, call the result a captured-term review tool and downgrade claims; do not hide a missing core feature. If time is constrained, cut public marketing detail and optional export formats before critical review, auth, source freshness, atomic release or isolation.
 

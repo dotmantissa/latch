@@ -1,7 +1,7 @@
 [project]
 name = "latch"
 version = "0.1.0"
-description = "Latch runtime feasibility tools"
+description = "Latch request worksheet and live feasibility tools"
 requires-python = ">=3.13,<3.14"
 dependencies = [
   "fastapi==0.162.0",
