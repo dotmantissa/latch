@@ -1,0 +1,37 @@
+[Unit]
+Description=Latch private mTLS browser task supervisor
+Requires=docker.service latch-egress.service
+After=docker.service latch-egress.service
+
+[Service]
+Type=simple
+User=latch-supervisor
+Group=latch-supervisor
+SupplementaryGroups=docker
+WorkingDirectory=/opt/latch
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/opt/latch/host-venv/bin/python -m services.supervisor.server --config /var/lib/latch/supervisor.json --state /var/lib/latch/tasks --tls /var/lib/latch/supervisor-tls
+Restart=on-failure
+RestartSec=2
+KillMode=control-group
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/latch/tasks
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+MemoryMax=512M
+TasksMax=48
+CPUQuota=100%
+LimitNOFILE=256
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

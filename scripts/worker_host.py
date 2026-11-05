@@ -14,11 +14,19 @@ ROOT = Path(__file__).resolve().parents[1]
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stdin-file", type=Path)
-    parser.add_argument("command", nargs=argparse.REMAINDER,
-                        help="Trusted operator remote command arguments")
+    parser.add_argument(
+        "--tunnel",
+        action="store_true",
+        help="Forward only local127.0.0.1:9443 to the private mTLS supervisor",
+    )
+    parser.add_argument(
+        "command", nargs=argparse.REMAINDER, help="Trusted operator remote command arguments"
+    )
     args = parser.parse_args()
-    if not args.command:
+    if not args.command and not args.tunnel:
         parser.error("A trusted operator command is required")
+    if args.tunnel and (args.command or args.stdin_file):
+        parser.error("Tunnel mode accepts no remote command or input file")
     os.chdir(ROOT)
     state = json.loads((ROOT / "private/vultr-worker-setup.json").read_text())
     address = ipaddress.ip_address(state["instance_ip"])
@@ -31,20 +39,38 @@ def main() -> int:
     import shlex
 
     body = args.stdin_file.read_bytes() if args.stdin_file else None
-    return subprocess.run(
-        [
-            "ssh",
-            "-i", str(key),
-            "-o", "IdentitiesOnly=yes",
-            "-o", "BatchMode=yes",
-            "-o", "ConnectTimeout=15",
-            "-o", "ServerAliveInterval=15",
-            "-o", "ServerAliveCountMax=3",
-            "-o", "StrictHostKeyChecking=yes",
-            "-o", "UserKnownHostsFile=" + str(known_hosts),
+    command = [
+        "ssh",
+        "-i",
+        str(key),
+        "-o",
+        "IdentitiesOnly=yes",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "ConnectTimeout=15",
+        "-o",
+        "ServerAliveInterval=15",
+        "-o",
+        "ServerAliveCountMax=3",
+        "-o",
+        "StrictHostKeyChecking=yes",
+        "-o",
+        "UserKnownHostsFile=" + str(known_hosts),
+    ]
+    if args.tunnel:
+        command += [
+            "-o",
+            "ExitOnForwardFailure=yes",
+            "-N",
+            "-L",
+            "127.0.0.1:9443:127.0.0.1:9443",
             "linuxuser@" + str(address),
-            shlex.join(args.command),
-        ],
+        ]
+    else:
+        command += ["linuxuser@" + str(address), shlex.join(args.command)]
+    return subprocess.run(
+        command,
         input=body,
         check=False,
     ).returncode

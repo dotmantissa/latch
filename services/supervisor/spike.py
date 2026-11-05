@@ -20,9 +20,7 @@ SECCOMP_SHA256 = "cc3e61cabda6bbc1e53e54d27ba4d55a9d3be829b6dd1a596f4a7b31b1cc78
 
 class WorkerSettings(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
-    image: str = Field(
-        pattern=r"^(?:[a-z0-9][a-z0-9./:_-]*@)?sha256:[a-f0-9]{64}$"
-    )
+    image: str = Field(pattern=r"^(?:[a-z0-9][a-z0-9./:_-]*@)?sha256:[a-f0-9]{64}$")
     network: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$")
     proxy: str
     seccomp_file: Path = ROOT / "infra/browser/seccomp.json"
@@ -97,10 +95,11 @@ def host_preflight(settings: WorkerSettings) -> dict:
     return {"image_digest": settings.image, "runtime": "runsc", "internal_network": True}
 
 
-def cleanup_task(task_id: str) -> bool:
-    if not re.fullmatch(r"[a-f0-9]{32}", task_id):
+def cleanup_task(task_id: str, *, scope: str = "p0") -> bool:
+    if not re.fullmatch(r"[a-f0-9]{32}", task_id) or scope not in ("p0", "task"):
         raise ValueError("INVALID_TASK_ID")
-    name = "latch-p0-" + task_id
+    name = "latch-" + scope + "-" + task_id
+    label = "latch.p0.task" if scope == "p0" else "latch.task"
     result = subprocess.run(
         [
             "docker",
@@ -120,7 +119,7 @@ def cleanup_task(task_id: str) -> bool:
     if not result.stdout.strip():
         return True
     container = docker_json("inspect", name)[0]
-    if container.get("Config", {}).get("Labels", {}).get("latch.p0.task") != task_id:
+    if container.get("Config", {}).get("Labels", {}).get(label) != task_id:
         raise ValueError("CLEANUP_OWNERSHIP_MISMATCH")
     subprocess.run(["docker", "rm", "--force", name], capture_output=True, timeout=15, check=True)
     result = subprocess.run(
@@ -143,9 +142,22 @@ def cleanup_task(task_id: str) -> bool:
 
 
 def run_task(
-    settings: WorkerSettings, payload: dict, timeout_seconds: int, task_id: str
+    settings: WorkerSettings,
+    payload: dict,
+    timeout_seconds: int,
+    task_id: str,
+    *,
+    scope: str = "p0",
+    cancel_event: threading.Event | None = None,
 ) -> tuple[int, bytes, bool, bool]:
-    name = "latch-p0-" + task_id
+    if not re.fullmatch(r"[a-f0-9]{32}", task_id) or scope not in ("p0", "task"):
+        raise ValueError("INVALID_TASK_ID")
+    if type(timeout_seconds) is not int or not 1 <= timeout_seconds <= 90:
+        raise ValueError("INVALID_TASK_DEADLINE")
+    if cancel_event is not None and cancel_event.is_set():
+        return -1, b"", False, cleanup_task(task_id, scope=scope)
+    name = "latch-" + scope + "-" + task_id
+    label = "latch.p0.task" if scope == "p0" else "latch.task"
     command = [
         "docker",
         "create",
@@ -153,7 +165,7 @@ def run_task(
         "--name",
         name,
         "--label",
-        "latch.p0.task=" + task_id,
+        label + "=" + task_id,
         "--runtime",
         "runsc",
         "--user",
@@ -187,7 +199,6 @@ def run_task(
         ".",
         settings.image,
     ]
-    subprocess.run(command, capture_output=True, timeout=20, check=True)
     process = None
     buffers = [bytearray(), bytearray()]
     limits = [15 * 1024 * 1024, 64 * 1024]
@@ -199,7 +210,7 @@ def run_task(
         if process is not None:
             process.kill()
         try:
-            cleanup_task(task_id)
+            cleanup_task(task_id, scope=scope)
         except (OSError, ValueError, subprocess.SubprocessError):
             # Only the main thread can confirm cleanup and record its result.
             pass
@@ -213,6 +224,10 @@ def run_task(
             buffers[index].extend(chunk)
 
     try:
+        # Persisted supervisor ownership precedes create; even a lost create response is cleaned.
+        subprocess.run(command, capture_output=True, timeout=20, check=True)
+        if cancel_event is not None and cancel_event.is_set():
+            return -1, b"", False, cleanup_task(task_id, scope=scope)
         container = docker_json("inspect", name)[0]
         host = container["HostConfig"]
         if (
@@ -269,11 +284,16 @@ def run_task(
             reader.join(timeout=5)
         if oversized.is_set():
             raise ValueError("WORKER_OUTPUT_EXCEEDS_LIMITS")
-        return process.returncode, bytes(buffers[0]), timed_out.is_set(), cleanup_task(task_id)
+        return (
+            process.returncode,
+            bytes(buffers[0]),
+            timed_out.is_set(),
+            cleanup_task(task_id, scope=scope),
+        )
     finally:
         if process is not None and process.poll() is None:
             process.kill()
-        cleanup_task(task_id)
+        cleanup_task(task_id, scope=scope)
 
 
 def worker_probe(app_settings, timeout_probe: bool = False) -> dict:

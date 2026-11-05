@@ -1,0 +1,11 @@
+[Unit]
+Description=Latch browser task lease and orphan deadline checks
+
+[Timer]
+OnBootSec=10
+OnUnitActiveSec=2
+AccuracySec=1
+Unit=latch-sweep.service
+
+[Install]
+WantedBy=timers.target

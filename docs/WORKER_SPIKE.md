@@ -2,7 +2,7 @@
 
 This is an operator-run feasibility tool for the private Vultr worker. It is not the
 durable supervisor service specified for P4. Do not run it on a machine containing
-unrelated work. The image and actual worker boundary have been exercised on the dedicated Ubuntu 26.04 Vultr host. [Current evidence](evidence/WORKER_STATUS.json) records the exact versions, actual documentation capture, network denial, watchdog and cleanup. Supplier acceptance and the durable P4 supervisor remain separate work.
+unrelated work. The image and actual worker boundary have been exercised on the dedicated Ubuntu 26.04 Vultr host. [Current evidence](evidence/WORKER_STATUS.json) records the exact versions, actual documentation capture, network denial, watchdog and cleanup. Supplier acceptance remains pending; the [durable P4 supervisor](SUPERVISOR.md) is a separate service.
 
 ## Required worker boundary
 
@@ -103,8 +103,8 @@ bash scripts/latch.sh cleanup-worker --task-id THE_RECORDED_TASK_ID
 
 The command accepts only the exact opaque ID and verifies the container label before
 removing it. It never kills a container selected by source text, a broad name match or an
-unrelated process. The P4 supervisor will later need managed independent watchdogs and
-restart sweeping; this finite P0 tool does not claim to replace those services.
+unrelated process. The separate [P4 supervisor](SUPERVISOR.md) now provides managed lifecycle and restart
+sweeping; this finite P0 tool does not replace those services.
 
 ## Current operator checks
 

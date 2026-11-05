@@ -116,9 +116,10 @@ class RequestInput(StrictRecord):
         if self.required_by.astimezone(zone).strftime("%Y-%m-%dT%H:%M") != self.required_by_local:
             raise ValueError("The local deadline does not match its timezone and UTC instant")
         local = datetime.fromisoformat(self.required_by_local)
-        if local.replace(tzinfo=zone, fold=0).utcoffset() != local.replace(
-            tzinfo=zone, fold=1
-        ).utcoffset():
+        if (
+            local.replace(tzinfo=zone, fold=0).utcoffset()
+            != local.replace(tzinfo=zone, fold=1).utcoffset()
+        ):
             raise ValueError("Choose an unambiguous local deadline")
         if len({item.key for item in self.items}) != len(self.items):
             raise ValueError("Item keys must be unique")
@@ -195,3 +196,16 @@ class ErrorView(StrictRecord):
     retryable: bool = False
     correlation_id: str
     current_version: int | None = None
+
+
+class JobView(StrictRecord):
+    id: str
+    request_id: str
+    request_version: int
+    state: Literal[
+        "queued", "running", "recovering", "cancelling", "succeeded", "failed", "cancelled"
+    ]
+    attempt: int
+    created_at: str
+    finished_at: str | None
+    failure_code: str | None

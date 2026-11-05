@@ -5,7 +5,7 @@ from uuid import uuid4
 import psycopg
 import pytest
 
-from services.storage.database import database, initialize
+from services.storage.database import SCHEMA_VERSION, database, initialize
 
 
 def test_migration_is_repeatable_and_versions_immutable(neon_store):
@@ -60,7 +60,10 @@ def test_transaction_rollback_and_newer_schema_refusal(neon_store):
             ).fetchone()["count"]
             == 0
         )
-        conn.execute("INSERT INTO schema_migrations(version,checksum) VALUES(2,'unknown')")
+        conn.execute(
+            "INSERT INTO schema_migrations(version,checksum) VALUES(%s,'unknown')",
+            (SCHEMA_VERSION + 1,),
+        )
     try:
         with pytest.raises(RuntimeError):
             initialize(url, schema=schema)
@@ -68,4 +71,4 @@ def test_transaction_rollback_and_newer_schema_refusal(neon_store):
             pass
     finally:
         with database(url, schema=schema, check_schema=False) as conn:
-            conn.execute("DELETE FROM schema_migrations WHERE version=2")
+            conn.execute("DELETE FROM schema_migrations WHERE version=%s", (SCHEMA_VERSION + 1,))

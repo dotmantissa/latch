@@ -1,15 +1,19 @@
 """Provider-independent API and same-origin application delivery."""
 
+import asyncio
 import hmac
+import json
 import re
+import time
 from contextlib import asynccontextmanager, contextmanager
 from urllib.parse import urlsplit
 from uuid import UUID, uuid4
 
 import psycopg
+from anyio import to_thread
 from fastapi import FastAPI, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.staticfiles import StaticFiles
@@ -19,6 +23,7 @@ from services.api.auth import (
     DUMMY_HASH,
     RateLimiter,
     csrf,
+    iso_ms,
     new_session,
     normalize_username,
     now_ms,
@@ -32,6 +37,7 @@ from services.common.config import read_secret
 from services.common.source_policy import StrictRecord
 from services.domain.contracts import (
     ErrorView,
+    JobView,
     ProfileView,
     RequestInput,
     RequestPage,
@@ -39,6 +45,7 @@ from services.domain.contracts import (
     SessionView,
     utc_string,
 )
+from services.storage import jobs
 from services.storage import requests as store
 from services.storage.database import database
 
@@ -99,6 +106,7 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
     settings = settings or AppSettings.from_environment()
     url, secret = settings.database_url(), read_secret(settings.csrf_key_file)
     limiter = RateLimiter()
+    streams: dict[str, int] = {}
 
     @asynccontextmanager
     async def lifespan(app):
@@ -157,7 +165,10 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
         try:
             if request.url.path.startswith("/api/"):
                 accepted = request.headers.get("accept", "*/*")
-                if not any(kind in accepted for kind in ("application/json", "*/*")):
+                formats = ("application/json", "*/*")
+                if request.url.path.endswith("/events") and request.method == "GET":
+                    formats += ("text/event-stream",)
+                if not any(kind in accepted for kind in formats):
                     raise ApiError(406, "JSON_REQUIRED", "error.format")
                 if request.method in ("POST", "PATCH", "DELETE", "PUT"):
                     if request.headers.get("origin") != settings.public_origin:
@@ -372,6 +383,94 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
         with authorized(request) as (conn, row):
             store.owned(conn, row["user_id"], request_id)
             raise ApiError(503, "WORKER_UNAVAILABLE", "error.worker")
+
+    def job_view(row):
+        return JobView(
+            id=str(row["id"]),
+            request_id=str(row["request_id"]),
+            request_version=row["request_version"],
+            state=row["state"],
+            attempt=row["attempt"],
+            created_at=iso_ms(row["created_at"]),
+            finished_at=iso_ms(row["finished_at"]) if row["finished_at"] else None,
+            failure_code=row["failure_code"],
+        )
+
+    @app.get("/api/v1/jobs/{job_id}", response_model=Envelope[JobView])
+    def job_status(job_id: UUID, request: Request):
+        with authorized(request) as (conn, row):
+            return Envelope(data=job_view(jobs.get(conn, row["user_id"], job_id)))
+
+    @app.post("/api/v1/jobs/{job_id}/cancel", response_model=Envelope[JobView])
+    def job_cancel(job_id: UUID, request: Request):
+        with authorized(request) as (conn, row):
+            return Envelope(data=job_view(jobs.cancel(conn, row["user_id"], job_id)))
+
+    @app.get(
+        "/api/v1/jobs/{job_id}/events",
+        response_class=StreamingResponse,
+        responses={200: {"content": {"text/event-stream": {}}}},
+    )
+    async def job_events(job_id: UUID, request: Request):
+        last = request.headers.get("last-event-id", "0")
+        if not re.fullmatch(r"[0-9]{1,19}", last) or int(last) > 9223372036854775807:
+            raise ApiError(422, "INVALID_EVENT_CURSOR", "error.field")
+
+        def replay(cursor):
+            # Reauthorize every replay, including session expiry/revocation during a stream.
+            with authorized(request) as (conn, user):
+                job = jobs.get(conn, user["user_id"], job_id)
+                rows = conn.execute(
+                    "SELECT id,safe_payload_json FROM events WHERE owner_id=%s "
+                    "AND job_id=%s AND id>%s ORDER BY id LIMIT 100",
+                    (user["user_id"], job_id, cursor),
+                ).fetchall()
+                return job, rows
+
+        initial = await to_thread.run_sync(replay, int(last))
+        owner = str(initial[0]["owner_id"])
+        # This accounting stays on the single ASGI event loop; no await between check/increment.
+        if streams.get(owner, 0) >= 3 or sum(streams.values()) >= 32:
+            raise ApiError(429, "EVENT_STREAM_LIMIT", "error.generic")
+        streams[owner] = streams.get(owner, 0) + 1
+
+        async def stream():
+            cursor, batch, ping = int(last), initial, time.monotonic()
+            yield ": connected\n\n"
+            while not await request.is_disconnected():
+                job, rows = batch
+                for item in rows:
+                    cursor = item["id"]
+                    yield (
+                        f"id: {cursor}\nevent: status\ndata: "
+                        + json.dumps(item["safe_payload_json"], separators=(",", ":"))
+                        + "\n\n"
+                    )
+                if job["state"] in jobs.TERMINAL and len(rows) < 100:
+                    return
+                if time.monotonic() - ping >= 15:
+                    yield ": heartbeat\n\n"
+                    ping = time.monotonic()
+                await asyncio.sleep(1)
+                try:
+                    batch = await to_thread.run_sync(replay, cursor)
+                except (ApiError, psycopg.Error, RuntimeError):
+                    return
+
+        async def bounded_stream():
+            try:
+                async for message in stream():
+                    yield message
+            finally:
+                streams[owner] -= 1
+                if not streams[owner]:
+                    del streams[owner]
+
+        return StreamingResponse(
+            bounded_stream(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
+        )
 
     # Generated contracts are built from this actual app; no infrastructure schemas are exposed.
     if settings.static_dir.is_dir():

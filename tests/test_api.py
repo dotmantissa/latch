@@ -235,3 +235,53 @@ def test_idle_expiry_is_server_enforced(neon_store, http_setup):
                 (now_ms() - IDLE_MS, token_hash(other.cookies.get(COOKIE))),
             )
         assert other.get("/api/v1/auth/session").status_code == 401
+
+
+def test_job_event_replay_owner_cancellation_and_cursor(http_setup, neon_store):
+    from services.storage import jobs
+
+    app, _, _, password, owner = http_setup
+    url, schema = neon_store
+    with TestClient(app, base_url="https://localhost:8443") as client:
+        auth = client.post(
+            "/api/v1/auth/login",
+            json={"username": "http_owner", "password": password},
+            headers={"Origin": "https://localhost:8443"},
+        )
+        headers = {
+            "Origin": "https://localhost:8443",
+            "X-CSRF-Token": auth.json()["data"]["csrf_token"],
+        }
+        rid = save(client, headers).json()["data"]["id"]
+        with database(url, schema=schema) as c:
+            job = jobs.enqueue(c, owner, rid, 1, "sse_assertion")
+        route = f"/api/v1/jobs/{job['id']}"
+        assert client.get(route).json()["data"]["state"] == "queued"
+        # Queued cancellation has no container and is immediately cleanup-complete.
+        assert (
+            client.post(route + "/cancel", json={}, headers=headers).json()["data"]["state"]
+            == "cancelled"
+        )
+        response = client.get(route + "/events", headers={"Accept": "text/event-stream"})
+        assert response.status_code == 200 and response.headers["x-accel-buffering"] == "no"
+        events = [line[4:] for line in response.text.splitlines() if line.startswith("id: ")]
+        assert len(events) == 2 and int(events[1]) > int(events[0])
+        assert "lease" not in response.text and "fence" not in response.text
+        resumed = client.get(
+            route + "/events", headers={"Accept": "text/event-stream", "Last-Event-ID": events[0]}
+        )
+        assert f"id: {events[0]}\n" not in resumed.text and f"id: {events[1]}\n" in resumed.text
+        assert (
+            client.get(route + "/events", headers={"Last-Event-ID": "invalid"}).status_code == 422
+        )
+        with TestClient(app, base_url="https://localhost:8443") as other:
+            other.post(
+                "/api/v1/auth/login",
+                json={"username": "http_other", "password": password},
+                headers={"Origin": "https://localhost:8443"},
+            )
+            assert other.get(route).status_code == 404
+            assert (
+                other.get(route + "/events", headers={"Accept": "text/event-stream"}).status_code
+                == 404
+            )

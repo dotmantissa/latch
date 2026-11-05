@@ -1,0 +1,20 @@
+[Unit]
+Description=Latch independent exact task orphan sweeper
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=latch-supervisor
+Group=latch-supervisor
+SupplementaryGroups=docker
+WorkingDirectory=/opt/latch
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/opt/latch/host-venv/bin/python -m services.supervisor.server --config /var/lib/latch/supervisor.json --state /var/lib/latch/tasks --sweep
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/latch/tasks
+PrivateTmp=yes
+UMask=0077
+TimeoutStartSec=45

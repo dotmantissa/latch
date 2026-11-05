@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "scope": "private_supervisor_and_durable_job_infrastructure",
+  "supplier_acceptance": "pending",
+  "public_inspection_enabled": false,
+  "database_schema_version": 2,
+  "limitations": [
+    "Technical documentation is infrastructure evidence, not a buyer or supplier task.",
+    "Actual supplier adapters, terms completeness, buyer consent and evidence review remain pending.",
+    "Public application deployment and submission remain unrequested."
+  ],
+  "at": "2026-11-05T12:11:55.820117+00:00",
+  "supervisor": {
+    "mTLS": "TLS1.3_required_CA_and_runner_URI",
+    "bind": "worker_loopback_only",
+    "missing_client_certificate_denied": true,
+    "wrong_fence_denied": true,
+    "capture": "succeeded",
+    "artifact_hash": "c2ef98933af8a885967978fb1e663582c8d7201ee3f5ebc83e32781499302231",
+    "cancellation": "cancelled",
+    "restart": "interrupted",
+    "cleanup_confirmed": true,
+    "delayed_revoked_fence_denied": true
+  },
+  "runner": {
+    "status": "passed",
+    "scope": "actual_isolated_Neon_and_worker_runner_recovery",
+    "supplier_acceptance": "pending",
+    "attempts": 2,
+    "actual_runner_killed_during_browser": true,
+    "real_lease_expired": true,
+    "fresh_fence": true,
+    "cleanup_before_retry": true,
+    "final_state": "succeeded",
+    "events": [
+      "job_queued",
+      "job_started",
+      "job_recovering",
+      "job_requeued",
+      "job_started",
+      "job_succeeded"
+    ]
+  },
+  "independent_sweeper": {
+    "status": "passed",
+    "scope": "actual_independent_sweeper_diagnostic",
+    "actual_running_container_observed": true,
+    "executor_stopped_with_SIGSTOP": true,
+    "real_lease_seconds": 12,
+    "timer_removed_container": true,
+    "cleanup_pending_until_reconciliation": true,
+    "cleanup_confirmed": true
+  },
+  "verification": {
+    "local_tests_passed": 134,
+    "real_Neon_checks_passed": 13,
+    "targeted_final_SSE_checks_passed": 1,
+    "TypeScript_Vite_build": "passed",
+    "migration001": "original_checksum_unchanged",
+    "application_inventory_before_upgrade": "empty",
+    "backup_restore": "pending"
+  }
+}

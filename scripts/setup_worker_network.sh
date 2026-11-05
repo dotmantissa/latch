@@ -11,7 +11,11 @@ fi
 LATCH_PROXY_UID=$(id -u latch-egress)
 install -d -m 0755 /opt/latch/services/common /opt/latch/services/supervisor
 install -d -m 0750 -o root -g latch-egress /var/lib/latch/proxy-tls
-chmod 0750 /var/lib/latch
+if id latch-supervisor >/dev/null 2>&1; then
+  chmod 0751 /var/lib/latch
+else
+  chmod 0750 /var/lib/latch
+fi
 chown root:latch-egress /var/lib/latch
 chown root:latch-egress /var/lib/latch/egress-policy.json
 chmod 0640 /var/lib/latch/egress-policy.json

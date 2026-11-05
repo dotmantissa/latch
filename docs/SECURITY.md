@@ -1,6 +1,6 @@
 # Trust boundaries, secrets and operations
 
-Implements the invariants in [ARCHITECTURE.md](../ARCHITECTURE.md). These are required controls and future verification steps. The identity and saved request controls have local HTTP and Neon integration checks. Actual worker infrastructure and Vultr capability observations are recorded in [worker evidence](evidence/WORKER_STATUS.json). Supplier accuracy, durable supervisor recovery, release and deployment controls still require their own live evidence.
+Implements the invariants in [ARCHITECTURE.md](../ARCHITECTURE.md). These are required controls and future verification steps. The identity and saved request controls have local HTTP and Neon integration checks. Actual worker infrastructure and Vultr capability observations are recorded in [worker evidence](evidence/WORKER_STATUS.json). Actual private supervisor and runner recovery observations are described in [P4 scope](SUPERVISOR.md). Supplier accuracy, release and deployment controls still require their own live evidence.
 
 ## Threat model and data classes
 

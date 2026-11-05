@@ -1,6 +1,6 @@
 # Data, API and worker contracts
 
-This is the detailed contract for [ARCHITECTURE.md](../ARCHITECTURE.md). The identity, profile admission and versioned request API are implemented. Capture, review, approval, job, release and export contracts below remain implementation instructions. See LOCAL.md for the available workflow. Display text comes from [COPY.json](../COPY.json). Never return internal secrets or infrastructure details in public errors.
+This is the detailed contract for [ARCHITECTURE.md](../ARCHITECTURE.md). The identity, profile admission and versioned request API are implemented. Private job supervision, durable leases/fencing and SSE replay are implemented as described in [SUPERVISOR.md](SUPERVISOR.md). Capture review, approval, release and export contracts below remain implementation instructions. See LOCAL.md for the available workflow. Display text comes from [COPY.json](../COPY.json). Never return internal secrets or infrastructure details in public errors.
 
 ## Representation rules
 

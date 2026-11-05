@@ -12,7 +12,7 @@ appearance. Its request rail and wide worksheet keep the details easy to return 
 Vultr inference and the private Ubuntu worker are connected. Live text, tools, image input,
 browser isolation and restricted networking have passed their infrastructure checks.
 Supplier inspection, evidence review, approval and source recheck remain unavailable while
-the durable workflow and actual supplier compatibility are completed.
+actual supplier compatibility and the review workflow are completed.
 A future release will create an internal purchase record without placing a supplier order.
 
 Start with [local setup](docs/LOCAL.md). The connection is kept in an ignored private file.
@@ -28,14 +28,16 @@ https://localhost:8443. No supplier pages or requests are seeded.
 | [Design specification](docs/DESIGN.md) | Layout, typography, themes and accessible interactions |
 | [Security and operations](docs/SECURITY.md) | Sessions, isolation, deployment and recovery requirements |
 | [Runtime probes](docs/P0.md) | Source admission and live capability checks |
+| [Durable worker](docs/SUPERVISOR.md) | Private supervision, job recovery and progress replay |
 | [Worker evidence](docs/evidence/WORKER_STATUS.json) | Actual browser isolation, network denial and Vultr capability observations |
 | [Acceptance plan](docs/ACCEPTANCE.md) | Future real supplier journeys and buyer evaluation |
 | [Brand assets](assets/brand/README.md) | Logo masters, fonts and browser icons |
 | [Sources](docs/SOURCES.md) | Official technical references |
 
 The automated checks cover deterministic arithmetic, real HTTP identity, owner isolation,
-Neon migrations and saved revision recovery. Live supplier accuracy, Vultr inference,
-worker containment, purchase release and buyer value still need their own evidence.
+Neon migrations, durable jobs, saved revision recovery and stored progress. Actual worker
+interruption and runner recovery checks use technical documentation. Supplier accuracy,
+purchase release and buyer value still need their own evidence.
 
 Earlier research remains in [the archive](research/README.md). Its synthetic examples are
 historical planning material. The local recovery checklist stays private and ignored.
