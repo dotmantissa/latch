@@ -5,6 +5,8 @@ import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import { App, HomePage, RequestList, SettingsPage, StatusPage } from "./pages";
 import { Worksheet } from "./worksheet";
 import { EvidenceReview } from "./review";
+import { DecisionWorkbench } from "./decision";
+import { ReceiptPage, SourceChanges } from "./receipt";
 import { ThemeProvider } from "./ui";
 import "./style.css";
 
@@ -25,6 +27,9 @@ const router = createBrowserRouter([
       { path: "/requests/new", element: <Worksheet /> },
       { path: "/requests/:id", element: <Worksheet /> },
       { path: "/requests/:id/evidence", element: <EvidenceReview /> },
+      { path: "/requests/:id/compare", element: <DecisionWorkbench /> },
+      { path: "/requests/:id/changes/:attemptId", element: <SourceChanges /> },
+      { path: "/releases/:receiptId", element: <ReceiptPage /> },
       { path: "/settings", element: <SettingsPage /> },
       { path: "*", element: <RequestList /> },
     ],

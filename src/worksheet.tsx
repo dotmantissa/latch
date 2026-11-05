@@ -723,6 +723,7 @@ function Editor({
             {saved ? <Link className="text-button" to={`/requests/${saved.id}/evidence${historical ? `?version=${saved.version}` : ""}`}>
               {copy("review.open")}
             </Link> : null}
+            {saved && !historical ? <Link className="text-button" to={`/requests/${saved.id}/compare`}>{copy("decision.open")}</Link> : null}
           </div>
           <div className="margin-note">
             <FileText size={20} aria-hidden />

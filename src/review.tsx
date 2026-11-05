@@ -32,7 +32,7 @@ export function EvidenceReview() {
       <div><span className="eyebrow">{request.data?.reference ?? copy("review.open")}</span><h1>{request.data?.worksheet.name ?? copy("review.heading")}</h1><p className="lede">{copy("review.intro")}</p>
         {request.data ? <p className="small muted">{copy("request.version")} {request.data.version} / {request.data.owner.display_name} / <time title={request.data.saved_at} dateTime={request.data.saved_at}>{timestamp(request.data.saved_at)}</time></p> : null}
       </div>
-      <Link className="text-button" to={`/requests/${id}${version ? `?version=${encodeURIComponent(version)}` : ""}`}>{copy("request.edit")}</Link>
+      <div className="decision-tools"><Link className="text-button" to={`/requests/${id}${version ? `?version=${encodeURIComponent(version)}` : ""}`}>{copy("request.edit")}</Link><Link className="text-button" to={`/requests/${id}/compare`}>{copy("decision.open")}</Link></div>
     </div>
     <ErrorNotice error={request.error ?? captures.error} retry={() => { void request.refetch(); void captures.refetch(); }} />
     {request.isPending || (request.data && captures.isPending) ? <p className="review-padding" role="status">{copy("common.loading")}</p> : null}
@@ -66,6 +66,7 @@ function SourceWorkbench({ saved, capture, extractionId }: { saved: SavedRequest
   const basket = review.data?.basket;
   return <>
     <div className="review-padding"><ErrorNotice error={review.error} retry={() => void review.refetch()} />
+      <details className="image-correspondence"><summary>{copy("image.heading")}</summary><p className="help">{copy("image.help")}</p>{capture.correspondence ? capture.correspondence.observations.map((observation, i) => <article key={i}><h3>{itemLabel(saved, observation.item_key)} / {copy("review.page")} {observation.page_index + 1}</h3><p>{copy(`image.${observation.status}`)} / {copy(`image.${observation.reason}`)}</p>{observation.evidence.map((quote, index) => <blockquote className="source-quote" key={index}>{quote.quote}</blockquote>)}{observation.region ? <p className="small muted">{copy("image.region")} {observation.region.join(", ")}</p> : null}</article>) : <p>{copy("image.missing")}</p>}</details>
       <p className="small review-notice" role="status">{notice || (review.isPending ? copy("common.loading") : "")}</p>
       {review.data && !review.data.review_allowed ? <p className="notice">{copy(`review.blocker.${review.data.review_blocker}`)}</p> : null}
     </div>

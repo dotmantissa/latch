@@ -354,6 +354,31 @@ def check_browser(settings, request_id, password):
                         }
                     )
                 )
+            # Compare the genuine source packet; missing terms and image abstention must
+            # remain unresolved despite the earlier individually corrected price.
+            page.goto(f"{origin}/requests/{request_id}/compare")
+            expect(
+                page.get_by_role("button", name="Save current comparison", exact=True)
+            ).to_be_visible()
+            page.get_by_role("button", name="Save current comparison", exact=True).click()
+            expect(page.locator(".review-notice")).to_have_text("Saved by the server.")
+            page.reload()
+            expect(page.locator(".compared-source")).to_have_count(1)
+            expect(
+                page.get_by_role("button", name="Choose this offer", exact=True)
+            ).to_be_disabled()
+            expect(
+                page.get_by_role("button", name="Approve this version", exact=True)
+            ).to_be_disabled()
+            expect(page.locator(".comparison-totals")).to_contain_text("Not confirmed")
+            expect(page.locator(".comparison-totals")).not_to_contain_text("$0.00")
+            page.set_viewport_size({"width": 390, "height": 1000})
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            page.screenshot(path=str(run / "actual-source-comparison-mobile.png"), full_page=True)
+            page.set_viewport_size({"width": 1440, "height": 1000})
+            page.screenshot(path=str(run / "actual-source-comparison-desktop.png"), full_page=True)
+            page.goto(evidence_url)
+            expect(price).to_be_visible()
             # Read eligibility from the API for actual expired/inactive profiles and jobs.
             with database(settings.database_url(), schema=settings.database_schema) as conn:
                 owner = conn.execute(
@@ -425,6 +450,8 @@ def check_browser(settings, request_id, password):
             "inactive_profile_and_active_inspection_blocked": True,
             "profile_time_expiry_observation": "not performed",
             "unknown_total_preserved": True,
+            "persisted_actual_source_comparison": True,
+            "image_abstention_prevents_selection_and_approval": True,
         }
         (run / "result.json").write_text(json.dumps(report, indent=2) + "\n")
         return report

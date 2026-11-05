@@ -290,6 +290,34 @@ def main() -> None:
                     conn.execute("SELECT count(*) AS n FROM request_versions").fetchone()["n"] == 2
                 )
             second.close()
+            decision_layouts = []
+            for theme in ("light", "dark"):
+                page.get_by_role("link", name="Settings", exact=True).click()
+                page.get_by_role("button", name=theme.title(), exact=True).click()
+                page.goto(request_url + "/compare")
+                expect(page.get_by_role("heading", name="No comparison saved yet.")).to_be_visible()
+                expect(
+                    page.get_by_role("button", name="Approve this version", exact=True)
+                ).to_be_disabled()
+                for width in (320, 390, 768, 1024, 1440, 1920):
+                    page.set_viewport_size({"width": width, "height": 1000})
+                    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+                    decision_layouts.append(f"{width}/{theme}")
+                    if width in (320, 1440):
+                        page.evaluate(axe)
+                        violations = page.evaluate("""async () => (await axe.run(document, {
+                            runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa','wcag22aa']}
+                        })).violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}))""")
+                        assert not violations, f"Decision accessibility failures: {violations}"
+                    if width in (390, 1440):
+                        page.screenshot(
+                            path=str(run / f"decision-{theme}-{width}.png"), full_page=True
+                        )
+            page.get_by_role("button", name="Save current comparison", exact=True).click()
+            expect(page.get_by_role("alert")).to_be_visible()
+            expect(page.get_by_role("heading", name="No comparison saved yet.")).to_be_visible()
+            page.goto(request_url)
+            expect(page.get_by_role("link", name="Version 1", exact=True)).to_be_visible()
             page.get_by_role("link", name="Settings", exact=True).click()
             page.get_by_role("button", name="System", exact=True).click()
             page.goto(request_url)
@@ -332,6 +360,8 @@ def main() -> None:
                 "zoom_200_percent": True,
                 "reduced_motion": True,
                 "console_errors": len(errors),
+                "decision_empty_and_no_authority": True,
+                "decision_layouts": decision_layouts,
                 "live_supplier_or_vultr_acceptance": False,
             }
             (run / "result.json").write_text(json.dumps(result, indent=2) + "\n")

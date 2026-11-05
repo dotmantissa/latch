@@ -25,11 +25,12 @@
     "revoked_restored_approving_session": "approval invalidated",
     "selection_or_approval_after_release": "rejected",
     "authorized_export_retries": "identical bytes and hashes",
-    "typescript_and_pinned_node24_vite_build": "passed"
+    "typescript_and_pinned_node24_vite_build": "passed",
+    "pdf_unknown_subtotal_and_known_zero": "actual decoded offline PDF text preserves unknown/zero distinction; deterministic bytes verified"
   },
   "browser": {
     "worksheet_and_empty_comparison": "twelve layouts each, axe, focus, zoom, reduced motion, restart, conflicts, session expiry and logout passed",
-    "actual_source_comparison": "persisted with unknown total and selection/approval denied for missing terms/image abstention; WORKBENCH_STATUS.json"
+    "actual_source_comparison": "final persisted comparison/reload, unknown subtotal/total and abstention selection/approval denial passed; desktop/mobile screenshots visually inspected"
   },
   "actual_source": {
     "url": "https://store.ui.com/us/en/products/u6-plus",

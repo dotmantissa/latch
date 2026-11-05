@@ -15,6 +15,10 @@ export type ReviewField = components["schemas"]["FieldView"];
 export type ReviewInput = components["schemas"]["ReviewInput"];
 export type ReviewPage = components["schemas"]["ReviewPage"];
 export type ReviewRecord = components["schemas"]["ReviewView"];
+export type Decision = components["schemas"]["DecisionView"];
+export type Comparison = components["schemas"]["ComparisonView"];
+export type ReleaseAttempt = components["schemas"]["ReleaseAttemptView"];
+export type Receipt = components["schemas"]["ReceiptView"];
 export const copy = (key: string): string =>
   (catalog as Record<string, string>)[key] ?? catalog["error.generic"];
 let csrf = "";
@@ -52,7 +56,7 @@ export async function api<T>(
   if (response.status === 204) return undefined as T;
   const body = await response.json();
   if (!response.ok) {
-    if (response.status === 401 && path !== "/auth/login") {
+    if (response.status === 401 && path !== "/auth/login" && body.code !== "REAUTH_REQUIRED") {
       setCsrf("");
       window.dispatchEvent(new Event("latch:session-ended"));
     }
