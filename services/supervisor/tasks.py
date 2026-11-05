@@ -1,8 +1,6 @@
 """Worker-local durable quarantine and lifecycle. Application records remain in Neon."""
 
-import base64
 import fcntl
-import hashlib
 import json
 import math
 import os
@@ -15,6 +13,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID
 
+from services.common.captures import capture_artifact
 from services.common.source_policy import SourceProfile
 from services.common.task_contracts import TaskCommand, TaskRef
 from services.supervisor.spike import WorkerSettings, cleanup_task, run_task
@@ -68,54 +67,6 @@ class Registry:
 
     def rows(self):
         return [self.load(UUID(path.stem)) for path in sorted(self.root.glob("*.json"))]
-
-
-def capture_artifact(output: bytes, payload: dict) -> str:
-    """Worker output is untrusted; validate the entire bounded capture before accepting it."""
-    if len(output) > 15 * 1024 * 1024:
-        raise TaskError("ARTIFACT_TOO_LARGE")
-    value = json.loads(output)
-    if value.get("complete") is not True or value.get("uid") != 1000:
-        raise TaskError("CAPTURE_INCOMPLETE")
-    pages = value.get("pages")
-    if not isinstance(pages, list) or len(pages) != len(payload["pages"]):
-        raise TaskError("CAPTURE_PAGE_SET")
-    total = 0
-    for index, (page, target) in enumerate(zip(pages, payload["pages"], strict=True)):
-        if page["url"] != target["url"] or page["observed_urls"] != [target["url"]]:
-            raise TaskError("CAPTURE_URL_CHAIN")
-        if page["status"] != 200:
-            raise TaskError("CAPTURE_STATUS")
-        text = page["text"].encode()
-        png = base64.b64decode(
-            value["png_base64"] if index == 0 else page["png_base64"], validate=True
-        )
-        total += len(text) + len(png)
-        if not text.strip() or len(text) > 32768 or total > 10 * 1024 * 1024:
-            raise TaskError("CAPTURE_CONTENT_LIMIT")
-        if len(png) < 33 or png[:8] != b"\x89PNG\r\n\x1a\n" or png[12:16] != b"IHDR":
-            raise TaskError("CAPTURE_PNG")
-        width, height = int.from_bytes(png[16:20], "big"), int.from_bytes(png[20:24], "big")
-        if (
-            type(page["width"]) is not int
-            or type(page["height"]) is not int
-            or ((page["width"], page["height"]) != (width, height))
-            or not 1 <= width <= 4000
-            or not 1 <= height <= 16000
-        ):
-            raise TaskError("CAPTURE_DIMENSIONS")
-        for data, key in ((text, "text_sha256"), (png, "png_sha256")):
-            if hashlib.sha256(data).hexdigest() != page[key]:
-                raise TaskError("CAPTURE_HASH")
-        start = datetime.fromisoformat(page["started_at"])
-        end = datetime.fromisoformat(page["completed_at"])
-        if (
-            start.tzinfo is None
-            or end.tzinfo is None
-            or not 0 <= (end - start).total_seconds() <= 90
-        ):
-            raise TaskError("CAPTURE_INTERVAL")
-    return hashlib.sha256(output).hexdigest()
 
 
 class Tasks:

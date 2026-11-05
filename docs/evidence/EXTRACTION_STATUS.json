@@ -1,0 +1,33 @@
+{
+  "observed_date": "2026-11-05",
+  "scope": "actual_public_supplier_source_research",
+  "source": "https://store.ui.com/us/en/products/u6-plus",
+  "capture": {
+    "http_status": 200,
+    "width": 1440,
+    "height": 1699,
+    "text_characters": 910,
+    "visually_reviewed": true,
+    "container_cleanup_confirmed": true,
+    "some_product_images_blocked": true
+  },
+  "extraction": {
+    "model": "qwen3.8-flash-next",
+    "calls": 2,
+    "first_proposal_rejected": "nonunique_evidence_quotes",
+    "repair_validated": true,
+    "hashes_and_exact_spans_independently_checked": true,
+    "price_state": "ambiguous",
+    "price_cents": null,
+    "shipping_cents": null,
+    "tax_included": null,
+    "available_units": null,
+    "latest_arrival": null,
+    "human_reviewed": false
+  },
+  "application_buyer_data_created": false,
+  "supplier_qualification": "pending",
+  "buyer_acceptance": "pending",
+  "supplier_vision_correspondence": "pending",
+  "public_inspection": "gated"
+}

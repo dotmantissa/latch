@@ -19,8 +19,22 @@ The store's robots path redirected to a 404 page. That observation establishes n
 permission. The independently attempted CDW product page and robots endpoint failed to
 connect from the development environment. No access control was bypassed.
 
-Continue by reviewing supplier access terms and capturing an actually supported offer on
-the isolated worker, then checking each required term against visible evidence. Record
-unsupported pages and unknown values in the workflow. Buyer fit and acceptance still
-need an actual purchase requirement; the infrastructure documentation capture cannot
-supply that evidence.
+The isolated worker subsequently captured that exact public product page with HTTP 200,
+a 1440 by 1699 raster and 910 characters of relevant text, then confirmed container
+cleanup. The raster was visually inspected. Some product images were blocked by the
+strict asset policy. The offer region retained both prices; it did not establish complete
+shipping, tax, stock, arrival or purchase terms. The worker-only research profile and
+explicit static asset origins expire on November 7. No application source profile,
+account or buyer request was created.
+
+Actual Vultr extraction required two calls: the first proposal was rejected because its
+repeated price quotes did not identify unique text spans. One repair produced valid
+exact surrounding quotes. Independent checks reproduced the capture and proposal hashes
+and every span. Price remains ambiguous with a null value; all missing material terms
+remain unknown and all human review flags remain false. This establishes bounded
+source-text extraction, not completed supplier qualification or buyer acceptance.
+
+See [EXTRACTION.md](EXTRACTION.md) for the implementation and its limits. Continue
+supplier access and completeness investigation using an actual purchase requirement.
+Artifact sanitization, persisted evidence review and supplier image correspondence
+validation remain separate finish gates.

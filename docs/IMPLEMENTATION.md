@@ -46,6 +46,10 @@ Finish evidence: actual supplier capture, permitted terms navigation, streaming 
 
 ## P5. Extraction and evidence-led review workbench
 
+Bounded public source-text proposals and exact-span grounding are implemented and
+verified against an actual public supplier capture; see [extraction scope](EXTRACTION.md).
+Supplier image correspondence, sanitized evidence storage and human review remain pending.
+
 Implement typed public-only model context, bounded page/region/terms tools, structured extraction, source span checks and vision correspondence call. Record prompts/model/schema versions and actual usage privately. Schema repairs stay bounded; no model authority modules available. Inconsistent/missing terms stay unknown/disputed.
 
 Build comparison ledger and evidence pane with crop/zoom/text attribution, field-state feedback, confirm/correct/dispute with reasons, original-value history, critical-review count and focus restoration. Use actual captures and API state. Recompute via domain rules after review; only feasible complete reviewed offers can be selected. Unknown/incomplete totals are textual, never zero. Mobile supplier tabs retain units and warnings.

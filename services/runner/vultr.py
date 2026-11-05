@@ -13,19 +13,32 @@ class ProviderFailure(Exception):
 
 
 class VultrClient:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, *, output_token_limit: int = 1024):
         if not settings.model_id or settings.inference_key_file is None:
             raise ProviderFailure("INFERENCE_NOT_CONFIGURED")
         self.model_id = settings.model_id
         self.endpoint = settings.inference_base_url + "/chat/completions"
         self._key = read_secret(settings.inference_key_file)
         self.calls = 0
+        if type(output_token_limit) is not int or output_token_limit not in (1024, 4096):
+            raise ProviderFailure("PROVIDER_OUTPUT_PROFILE_INVALID")
+        self.output_token_limit = output_token_limit
 
     def complete(self, messages: list[dict], **options: object) -> tuple[dict, dict]:
-        allowed_options = {"max_tokens", "response_format", "tools", "tool_choice",
-                           "reasoning_effort", "temperature"}
-        cap = options.get("max_tokens", 1024)
-        if (set(options) - allowed_options or type(cap) is not int or not 1 <= cap <= 1024):
+        allowed_options = {
+            "max_tokens",
+            "response_format",
+            "tools",
+            "tool_choice",
+            "reasoning_effort",
+            "temperature",
+        }
+        cap = options.get("max_tokens", self.output_token_limit)
+        if (
+            set(options) - allowed_options
+            or type(cap) is not int
+            or not 1 <= cap <= self.output_token_limit
+        ):
             raise ProviderFailure("PROVIDER_OPTIONS_INVALID")
         if self.calls >= 3:
             raise ProviderFailure("CAPABILITY_CALL_LIMIT")
@@ -33,7 +46,7 @@ class VultrClient:
         body = {
             "model": self.model_id,
             "messages": messages,
-            "max_tokens": 1024,
+            "max_tokens": self.output_token_limit,
             **options,
         }
         started = time.monotonic()
