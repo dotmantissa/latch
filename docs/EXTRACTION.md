@@ -57,7 +57,8 @@ The command uses the established private supervisor tunnel and owned ignored inf
 credential. It creates no application buyer data. Source-text extraction and
 [sanitized evidence storage and delivery](EVIDENCE.md) are implemented, alongside
 [individual review records and their interface](REVIEWS.md). Supplier vision
-correspondence, the full comparison workflow and observed human acceptance remain pending.
+[correspondence](CORRESPONDENCE.md) and the [comparison workflow](WORKFLOW.md) are
+implemented; observed human and qualified supplier acceptance remain pending.
 Public inspection remains gated.
 
 The [durable runner check](evidence/RUNNER_EXTRACTION_STATUS.json) used a fresh actual

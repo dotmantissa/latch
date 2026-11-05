@@ -24,11 +24,14 @@ DIRECTORY = Path("var/runner-extraction-check")
 
 def main():
     DIRECTORY.mkdir(mode=0o700, exist_ok=True)
-    settings = AppSettings.from_environment().model_copy(update={
-        "database_schema": "latch_test_" + uuid4().hex,
-        "evidence_dir": DIRECTORY / "sanitized", "model_id": "qwen3.8-flash-next",
-        "inference_key_file": Path("private/vultr-inference-key"),
-    })
+    settings = AppSettings.from_environment().model_copy(
+        update={
+            "database_schema": "latch_test_" + uuid4().hex,
+            "evidence_dir": DIRECTORY / "sanitized",
+            "model_id": "qwen3.8-flash-next",
+            "inference_key_file": Path("private/vultr-inference-key"),
+        }
+    )
     url, schema = settings.database_url(), settings.database_schema
     recovery = DIRECTORY / "active.json"
     recovery.write_text(json.dumps({"schema": schema, "phase": "initializing"}))
@@ -43,8 +46,11 @@ def main():
         initialize(url, schema=schema)
         initialized = True
         profile = SourceProfile(
-            id="ubiquiti_u6plus_research", version=1, origin="https://store.ui.com",
-            offer_paths=["/us/en/products/u6-plus"], main_selector="main",
+            id="ubiquiti_u6plus_research",
+            version=1,
+            origin="https://store.ui.com",
+            offer_paths=["/us/en/products/u6-plus"],
+            main_selector="main",
             asset_origins=["https://assets.ecomm.ui.com", "https://cdn.ecomm.ui.com"],
             expires_at="2026-11-07T00:00:00Z",
         )
@@ -52,16 +58,21 @@ def main():
         with db() as c:
             c.execute(
                 "INSERT INTO users VALUES(%s,'runner_source_research',"
-                "'Public source research','unused',true,1,1)", (owner,),
+                "'Public source research','unused',true,1,1)",
+                (owner,),
             )
             c.execute(
                 "INSERT INTO source_profiles VALUES(%s,1,%s,true,%s)",
-                (profile.id, Jsonb(profile.model_dump(mode="json")),
-                 int(profile.expires_at.timestamp() * 1000)),
+                (
+                    profile.id,
+                    Jsonb(profile.model_dump(mode="json")),
+                    int(profile.expires_at.timestamp() * 1000),
+                ),
             )
             c.execute(
                 "INSERT INTO requests(id,owner_id,current_version,created_at,updated_at) "
-                "VALUES(%s,%s,1,1,1)", (rid, owner),
+                "VALUES(%s,%s,1,1,1)",
+                (rid, owner),
             )
             c.execute(
                 "INSERT INTO request_versions VALUES(%s,1,%s,'research',1)",
@@ -70,25 +81,34 @@ def main():
             c.execute(
                 "INSERT INTO required_items VALUES(%s,%s,1,'u6_plus',"
                 "'Private projection denial assertion',"
-                "'Ubiquiti Access Point U6 Plus',1,0)", (uuid4(), rid),
+                "'Ubiquiti Access Point U6 Plus',1,0)",
+                (uuid4(), rid),
             )
             c.execute(
                 "INSERT INTO supplier_sources VALUES(%s,%s,1,'U6 Plus research',%s,%s,1,%s)",
                 (source, rid, profile.origin + profile.offer_paths[0], profile.id, "store.ui.com"),
             )
             jobs.enqueue(c, owner, rid, 1, "durable_source_extraction")
+
         def invalid(value):
-            (DIRECTORY / f"invalid-{value['attempt']}.json").write_text(
+            name = f"invalid-{value.get('phase', 'extraction')}-{value['attempt']}.json"
+            (DIRECTORY / name).write_text(
                 json.dumps(value, indent=2) + "\n",
             )
 
         runner = Runner(settings, client, DIRECTORY / "quarantine", on_invalid=invalid)
         with db() as c:
             job = jobs.claim(c, runner.holder)
-        recovery.write_text(json.dumps({
-            "schema": schema, "job_id": str(job["id"]), "fence": str(job["fence"]),
-            "phase": "actual_runner_capture_and_inference",
-        }))
+        recovery.write_text(
+            json.dumps(
+                {
+                    "schema": schema,
+                    "job_id": str(job["id"]),
+                    "fence": str(job["fence"]),
+                    "phase": "actual_runner_capture_and_inference",
+                }
+            )
+        )
         print("Running fresh public supplier capture and bounded durable extraction.", flush=True)
         runner.run(job)
         with db() as c:
@@ -96,14 +116,17 @@ def main():
             packets = evidence.views(c, owner, rid, 1)
             tasks = c.execute("SELECT * FROM job_tasks WHERE job_id=%s", (job["id"],)).fetchall()
             events = c.execute(
-                "SELECT kind FROM events WHERE job_id=%s ORDER BY id", (job["id"],),
+                "SELECT kind FROM events WHERE job_id=%s ORDER BY id",
+                (job["id"],),
             ).fetchall()
             extraction_row = c.execute(
                 "SELECT e.* FROM source_extractions e JOIN source_captures c ON c.id=e.capture_id "
-                "WHERE c.job_id=%s AND c.fence=%s", (job["id"], job["fence"]),
+                "WHERE c.job_id=%s AND c.fence=%s",
+                (job["id"], job["fence"]),
             ).fetchone()
         summary = {
-            "state": final["state"], "failure_code": final["failure_code"],
+            "state": final["state"],
+            "failure_code": final["failure_code"],
             "events": [e["kind"] for e in events],
             "proposal_stored": extraction_row is not None,
         }
@@ -123,17 +146,29 @@ def main():
             raster = runner.evidence.read(page.sanitized_hash)
             assert hashlib.sha256(raster).hexdigest() == page.sanitized_hash
         assert [e["kind"] for e in events] == [
-            "job_queued", "job_started", "capture_stored", "extraction_started",
-            "extraction_stored", "job_succeeded",
+            "job_queued",
+            "job_started",
+            "capture_stored",
+            "extraction_started",
+            "extraction_stored",
+            "correspondence_stored",
+            "job_succeeded",
         ]
         report = {
-            "status": "passed", "scope": "actual_isolated_supplier_runner_extraction",
-            "application_buyer_data_created": False, "human_reviewed": False,
-            "buyer_acceptance_and_release": "pending", "cleanup_confirmed": True,
-            "durable_sanitized_capture": True, "durable_grounded_extraction": True,
+            "status": "passed",
+            "scope": "actual_isolated_supplier_runner_extraction",
+            "application_buyer_data_created": False,
+            "human_reviewed": False,
+            "buyer_acceptance_and_release": "pending",
+            "cleanup_confirmed": True,
+            "durable_sanitized_capture": True,
+            "durable_grounded_extraction": True,
             "complete_fenced_publication": True,
+            "durable_raster_correspondence": packets[0].correspondence is not None,
+            "correspondence_status": [o.status for o in packets[0].correspondence.observations],
             "actual_vultr_calls": extraction_row["usage_json"]["calls"],
-            "price_state": price.state, "price_cents": price.value,
+            "price_state": price.state,
+            "price_cents": price.value,
             "events": [e["kind"] for e in events],
         }
         (DIRECTORY / "result.json").write_text(json.dumps(report, indent=2) + "\n")
@@ -159,8 +194,14 @@ if __name__ == "__main__":
         main()
     except Exception as error:
         # Raw connection/provider errors and source content never enter terminal output.
-        print(json.dumps({
-            "status": "failed", "code": type(error).__name__,
-            "assertion": str(error) if isinstance(error, AssertionError) else None,
-        }), flush=True)
+        print(
+            json.dumps(
+                {
+                    "status": "failed",
+                    "code": type(error).__name__,
+                    "assertion": str(error) if isinstance(error, AssertionError) else None,
+                }
+            ),
+            flush=True,
+        )
         raise SystemExit(1) from None

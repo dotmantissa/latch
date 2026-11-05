@@ -244,6 +244,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/captures/{capture_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Capture History */
+        get: operations["capture_history_api_v1_captures__capture_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/extractions/{extraction_id}/reviews": {
         parameters: {
             query?: never;
@@ -273,6 +290,177 @@ export interface paths {
         put?: never;
         /** Inspect */
         post: operations["inspect_api_v1_requests__request_id__inspections_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requests/{request_id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Decision State */
+        get: operations["decision_state_api_v1_requests__request_id__decision_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requests/{request_id}/comparisons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Compare Sources */
+        post: operations["compare_sources_api_v1_requests__request_id__comparisons_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requests/{request_id}/selections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Select Source */
+        post: operations["select_source_api_v1_requests__request_id__selections_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requests/{request_id}/approvals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Version */
+        post: operations["approve_version_api_v1_requests__request_id__approvals_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/approvals/{approval_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke Approval */
+        post: operations["revoke_approval_api_v1_approvals__approval_id__revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requests/{request_id}/release-attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Release History */
+        get: operations["release_history_api_v1_requests__request_id__release_attempts_get"];
+        put?: never;
+        /** Release Begin */
+        post: operations["release_begin_api_v1_requests__request_id__release_attempts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/release-attempts/{attempt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Release Status */
+        get: operations["release_status_api_v1_release_attempts__attempt_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/release-attempts/{attempt_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Release */
+        post: operations["cancel_release_api_v1_release_attempts__attempt_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/releases/{receipt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Released Receipt */
+        get: operations["released_receipt_api_v1_releases__receipt_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/releases/{receipt_id}/exports/{format}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Receipt */
+        get: operations["export_receipt_api_v1_releases__receipt_id__exports__format__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -334,6 +522,47 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ApprovalInput */
+        ApprovalInput: {
+            /** Request Version */
+            request_version: number;
+            /**
+             * Selection Id
+             * Format: uuid
+             */
+            selection_id: string;
+            /** Comparison Hash */
+            comparison_hash: string;
+            /** Scope Seen */
+            scope_seen: boolean;
+        };
+        /** ApprovalView */
+        ApprovalView: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Packet Hash */
+            packet_hash: string;
+            /**
+             * Selection Id
+             * Format: uuid
+             */
+            selection_id: string;
+            requester: components["schemas"]["UserView"];
+            /** Created At */
+            created_at: string;
+            /** Expires At */
+            expires_at: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "active" | "expired" | "revoked" | "invalidated";
+            /** Scope */
+            scope: string;
+        };
         /** BasketResult */
         BasketResult: {
             /** Source Id */
@@ -393,6 +622,7 @@ export interface components {
             /** Extraction Id */
             extraction_id: string | null;
             extraction: components["schemas"]["Extraction"] | null;
+            correspondence?: components["schemas"]["Correspondence"] | null;
         };
         /** CapturedPageView */
         CapturedPageView: {
@@ -420,6 +650,102 @@ export interface components {
             /** Height */
             height: number;
         };
+        /** CompareInput */
+        CompareInput: {
+            /** Request Version */
+            request_version: number;
+        };
+        /** ComparedSource */
+        ComparedSource: {
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /** Label */
+            label: string;
+            /**
+             * Capture Id
+             * Format: uuid
+             */
+            capture_id: string;
+            /**
+             * Extraction Id
+             * Format: uuid
+             */
+            extraction_id: string;
+            /** Capture Hash */
+            capture_hash: string;
+            /** Content Fingerprint */
+            content_fingerprint: string;
+            /** Proposal Hash */
+            proposal_hash: string;
+            /** Review Version */
+            review_version: number;
+            /** Review Set Hash */
+            review_set_hash: string;
+            /** Correspondence Hash */
+            correspondence_hash: string | null;
+            /** Reviewed Fields */
+            reviewed_fields: {
+                [key: string]: unknown;
+            }[];
+            /** Profile Id */
+            profile_id: string;
+            /** Profile Version */
+            profile_version: number;
+            basket: components["schemas"]["BasketResult"];
+            /** Blockers */
+            blockers: string[];
+            /** Selectable */
+            selectable: boolean;
+            /** Rank */
+            rank?: number | null;
+        };
+        /** ComparisonView */
+        ComparisonView: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Request Version */
+            request_version: number;
+            /** Packet Hash */
+            packet_hash: string;
+            /** Evaluated At */
+            evaluated_at: string;
+            /** Current */
+            current: boolean;
+            /** Blockers */
+            blockers: string[];
+            /** Sources */
+            sources: components["schemas"]["ComparedSource"][];
+        };
+        /** Correspondence */
+        Correspondence: {
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /** Capture Hash */
+            capture_hash: string;
+            /** Raster Hashes */
+            raster_hashes: string[];
+            /** Model Id */
+            model_id: string;
+            /**
+             * Version
+             * @default raster-correspondence-v1
+             * @constant
+             */
+            version: "raster-correspondence-v1";
+            /** Observations */
+            observations: components["schemas"]["Observation"][];
+            /** Result Hash */
+            result_hash: string;
+        };
         /** Decision */
         Decision: {
             /** Item Key */
@@ -443,9 +769,51 @@ export interface components {
             /** Spans */
             spans: components["schemas"]["Span"][];
         };
+        /** DecisionView */
+        DecisionView: {
+            comparison: components["schemas"]["ComparisonView"] | null;
+            selection: components["schemas"]["SelectionView"] | null;
+            approval: components["schemas"]["ApprovalView"] | null;
+        };
+        /** Envelope[ApprovalView] */
+        Envelope_ApprovalView_: {
+            data: components["schemas"]["ApprovalView"];
+            /** Resource Version */
+            resource_version?: number | null;
+        };
+        /** Envelope[CaptureView] */
+        Envelope_CaptureView_: {
+            data: components["schemas"]["CaptureView"];
+            /** Resource Version */
+            resource_version?: number | null;
+        };
+        /** Envelope[ComparisonView] */
+        Envelope_ComparisonView_: {
+            data: components["schemas"]["ComparisonView"];
+            /** Resource Version */
+            resource_version?: number | null;
+        };
+        /** Envelope[DecisionView] */
+        Envelope_DecisionView_: {
+            data: components["schemas"]["DecisionView"];
+            /** Resource Version */
+            resource_version?: number | null;
+        };
         /** Envelope[JobView] */
         Envelope_JobView_: {
             data: components["schemas"]["JobView"];
+            /** Resource Version */
+            resource_version?: number | null;
+        };
+        /** Envelope[ReceiptView] */
+        Envelope_ReceiptView_: {
+            data: components["schemas"]["ReceiptView"];
+            /** Resource Version */
+            resource_version?: number | null;
+        };
+        /** Envelope[ReleaseAttemptView] */
+        Envelope_ReleaseAttemptView_: {
+            data: components["schemas"]["ReleaseAttemptView"];
             /** Resource Version */
             resource_version?: number | null;
         };
@@ -473,6 +841,12 @@ export interface components {
             /** Resource Version */
             resource_version?: number | null;
         };
+        /** Envelope[SelectionView] */
+        Envelope_SelectionView_: {
+            data: components["schemas"]["SelectionView"];
+            /** Resource Version */
+            resource_version?: number | null;
+        };
         /** Envelope[SessionView] */
         Envelope_SessionView_: {
             data: components["schemas"]["SessionView"];
@@ -496,6 +870,13 @@ export interface components {
         Envelope_list_ProfileView__: {
             /** Data */
             data: components["schemas"]["ProfileView"][];
+            /** Resource Version */
+            resource_version?: number | null;
+        };
+        /** Envelope[list[ReleaseAttemptView]] */
+        Envelope_list_ReleaseAttemptView__: {
+            /** Data */
+            data: components["schemas"]["ReleaseAttemptView"][];
             /** Resource Version */
             resource_version?: number | null;
         };
@@ -598,6 +979,27 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** Observation */
+        Observation: {
+            /** Page Index */
+            page_index: number;
+            /** Item Key */
+            item_key: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "agrees" | "disagrees" | "abstains";
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "visible_match" | "visible_conflict" | "not_visible" | "uncertain";
+            /** Evidence */
+            evidence: components["schemas"]["Quote"][];
+            /** Region */
+            region?: number[] | null;
+        };
         /** PasswordInput */
         PasswordInput: {
             /** Password */
@@ -622,6 +1024,81 @@ export interface components {
             page_index: number;
             /** Quote */
             quote: string;
+        };
+        /** ReceiptView */
+        ReceiptView: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Request Id
+             * Format: uuid
+             */
+            request_id: string;
+            /** Request Version */
+            request_version: number;
+            /** Committed At */
+            committed_at: string;
+            /** Record Hash */
+            record_hash: string;
+            /** Record */
+            record: {
+                [key: string]: unknown;
+            };
+        };
+        /** ReleaseAttemptView */
+        ReleaseAttemptView: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Request Id
+             * Format: uuid
+             */
+            request_id: string;
+            /** Request Version */
+            request_version: number;
+            /**
+             * Approval Id
+             * Format: uuid
+             */
+            approval_id: string;
+            /**
+             * Job Id
+             * Format: uuid
+             */
+            job_id: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "queued" | "running" | "changed" | "blocked" | "released";
+            /** Reason */
+            reason: string | null;
+            /** Differences */
+            differences: components["schemas"]["SourceDiff"][];
+            /** Receipt Id */
+            receipt_id: string | null;
+            /** Created At */
+            created_at: string;
+        };
+        /** ReleaseInput */
+        ReleaseInput: {
+            /** Request Version */
+            request_version: number;
+            /**
+             * Approval Id
+             * Format: uuid
+             */
+            approval_id: string;
+            /** Approval Hash */
+            approval_hash: string;
+            /** Scope Seen */
+            scope_seen: boolean;
         };
         /** RequestInput */
         RequestInput: {
@@ -765,6 +1242,49 @@ export interface components {
             created_at: string;
             decision: components["schemas"]["Decision"];
         };
+        /** SelectionInput */
+        SelectionInput: {
+            /** Request Version */
+            request_version: number;
+            /**
+             * Comparison Id
+             * Format: uuid
+             */
+            comparison_id: string;
+            /** Comparison Hash */
+            comparison_hash: string;
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+        };
+        /** SelectionView */
+        SelectionView: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /**
+             * Comparison Id
+             * Format: uuid
+             */
+            comparison_id: string;
+            /** Revision */
+            revision: number;
+            /** Current */
+            current: boolean;
+            /** Created At */
+            created_at: string;
+        };
         /** SessionView */
         SessionView: {
             user: components["schemas"]["UserView"];
@@ -774,6 +1294,34 @@ export interface components {
             expires_at: string;
             /** Reauth Fresh */
             reauth_fresh: boolean;
+        };
+        /** SourceDiff */
+        SourceDiff: {
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /**
+             * Old Capture Id
+             * Format: uuid
+             */
+            old_capture_id: string;
+            /**
+             * New Capture Id
+             * Format: uuid
+             */
+            new_capture_id: string;
+            /** Text Changed */
+            text_changed: boolean;
+            /** Raster Changed */
+            raster_changed: boolean;
+            /** Old Fingerprint */
+            old_fingerprint: string;
+            /** New Fingerprint */
+            new_fingerprint: string;
+            /** Text Diff */
+            text_diff: string[];
         };
         /** SourceReviewView */
         SourceReviewView: {
@@ -1319,6 +1867,37 @@ export interface operations {
             };
         };
     };
+    capture_history_api_v1_captures__capture_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                capture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_CaptureView_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     review_history_api_v1_extractions__extraction_id__reviews_get: {
         parameters: {
             query?: {
@@ -1411,6 +1990,362 @@ export interface operations {
                 content: {
                     "application/json": unknown;
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decision_state_api_v1_requests__request_id__decision_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_DecisionView_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_sources_api_v1_requests__request_id__comparisons_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompareInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ComparisonView_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    select_source_api_v1_requests__request_id__selections_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SelectionInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_SelectionView_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_version_api_v1_requests__request_id__approvals_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApprovalInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ApprovalView_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_approval_api_v1_approvals__approval_id__revoke_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                approval_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ApprovalView_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    release_history_api_v1_requests__request_id__release_attempts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_list_ReleaseAttemptView__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    release_begin_api_v1_requests__request_id__release_attempts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReleaseInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReleaseAttemptView_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    release_status_api_v1_release_attempts__attempt_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReleaseAttemptView_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_release_api_v1_release_attempts__attempt_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReleaseAttemptView_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    released_receipt_api_v1_releases__receipt_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                receipt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReceiptView_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_receipt_api_v1_releases__receipt_id__exports__format__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                receipt_id: string;
+                format: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

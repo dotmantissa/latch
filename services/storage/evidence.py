@@ -10,6 +10,8 @@ from services.api.errors import ApiError
 from services.artifacts.contracts import CapturedPageView, CaptureView
 from services.artifacts.packet import FINGERPRINT_VERSION, Packet
 from services.artifacts.sanitize import POLICY_VERSION
+from services.domain.correspondence import Correspondence
+from services.domain.correspondence import validate as validate_correspondence
 from services.domain.extraction import Extraction, revalidate
 from services.storage import jobs
 from services.storage.requests import owned
@@ -18,9 +20,12 @@ from services.storage.requests import owned
 def current(conn, job_id, fence, holder, *, renew=False):
     job = (jobs.heartbeat if renew else jobs.leased)(conn, job_id, fence, holder)
     request = owned(conn, job["owner_id"], job["request_id"], lock=True)
-    if (jobs.clock(conn) >= job["deadline_at"] or job["cancel_requested_at"]
-            or request["archived_at"]
-            or request["current_version"] != job["request_version"]):
+    if (
+        jobs.clock(conn) >= job["deadline_at"]
+        or job["cancel_requested_at"]
+        or request["archived_at"]
+        or request["current_version"] != job["request_version"]
+    ):
         raise ValueError("EVIDENCE_JOB_NO_LONGER_CURRENT")
     return job
 
@@ -36,23 +41,33 @@ def active_profile(conn, profile_id, profile_version):
 
 
 def validate_usage(extraction: Extraction, usage: dict):
-    if (not isinstance(usage, dict) or set(usage) != {"calls", "attempts", "capture_sha256"}
-            or type(usage["calls"]) is not int or not 1 <= usage["calls"] <= 3
-            or not isinstance(usage["attempts"], list)
-            or len(usage["attempts"]) != usage["calls"]
-            or usage["capture_sha256"] != extraction.capture_hash):
+    if (
+        not isinstance(usage, dict)
+        or set(usage) != {"calls", "attempts", "capture_sha256"}
+        or type(usage["calls"]) is not int
+        or not 1 <= usage["calls"] <= 3
+        or not isinstance(usage["attempts"], list)
+        or len(usage["attempts"]) != usage["calls"]
+        or usage["capture_sha256"] != extraction.capture_hash
+    ):
         raise ValueError("EVIDENCE_EXTRACTION_USAGE_INVALID")
     for attempt in usage["attempts"]:
-        if (not isinstance(attempt, dict) or set(attempt) != {"model", "usage", "elapsed_ms"}
-                or attempt["model"] != extraction.model_id
-                or type(attempt["elapsed_ms"]) is not int or attempt["elapsed_ms"] < 0):
+        if (
+            not isinstance(attempt, dict)
+            or set(attempt) != {"model", "usage", "elapsed_ms"}
+            or attempt["model"] != extraction.model_id
+            or type(attempt["elapsed_ms"]) is not int
+            or attempt["elapsed_ms"] < 0
+        ):
             raise ValueError("EVIDENCE_EXTRACTION_USAGE_INVALID")
         counts = attempt["usage"]
-        if (not isinstance(counts, dict)
-                or set(counts) != {"prompt_tokens", "completion_tokens", "total_tokens"}
-                or any(type(n) is not int or n < 0 for n in counts.values())
-                or counts["completion_tokens"] > 4096
-                or counts["total_tokens"] != counts["prompt_tokens"] + counts["completion_tokens"]):
+        if (
+            not isinstance(counts, dict)
+            or set(counts) != {"prompt_tokens", "completion_tokens", "total_tokens"}
+            or any(type(n) is not int or n < 0 for n in counts.values())
+            or counts["completion_tokens"] > 4096
+            or counts["total_tokens"] != counts["prompt_tokens"] + counts["completion_tokens"]
+        ):
             raise ValueError("EVIDENCE_EXTRACTION_USAGE_INVALID")
 
 
@@ -66,44 +81,80 @@ def save_capture(conn, job_id, fence, holder, task_id, packet: Packet):
         (task_id, job_id, fence),
     ).fetchone()
     at = jobs.clock(conn)
-    if (task is None or task["request_id"] != job["request_id"]
-            or task["version"] != job["request_version"] or not task["cleanup_at"]
-            or task["outcome"] != "captured" or task["artifact_hash"] != packet.capture_hash
-            or (task["profile_id"], task["profile_version"]) != (
-                packet.profile_id, packet.profile_version)
-            or not task["active"] or task["expires_at"] <= at):
+    if (
+        task is None
+        or task["request_id"] != job["request_id"]
+        or task["version"] != job["request_version"]
+        or not task["cleanup_at"]
+        or task["outcome"] != "captured"
+        or task["artifact_hash"] != packet.capture_hash
+        or (task["profile_id"], task["profile_version"])
+        != (packet.profile_id, packet.profile_version)
+        or not task["active"]
+        or task["expires_at"] <= at
+    ):
         raise ValueError("EVIDENCE_CAPTURE_ATTRIBUTION_INVALID")
     if not 1 <= len(packet.pages) <= 2 or [p.index for p in packet.pages] != list(
-            range(len(packet.pages))):
+        range(len(packet.pages))
+    ):
         raise ValueError("EVIDENCE_PAGE_SET_INVALID")
     for page in packet.pages:
-        if (page.text_hash != hashlib.sha256(page.text.encode()).hexdigest()
-                or page.raster.sanitizer_version != POLICY_VERSION
-                or int(page.started_at.timestamp() * 1000) < task["started_at"] - 2000
-                or int(page.completed_at.timestamp() * 1000) > at + 2000):
+        if (
+            page.text_hash != hashlib.sha256(page.text.encode()).hexdigest()
+            or page.raster.sanitizer_version != POLICY_VERSION
+            or int(page.started_at.timestamp() * 1000) < task["started_at"] - 2000
+            or int(page.completed_at.timestamp() * 1000) > at + 2000
+        ):
             raise ValueError("EVIDENCE_PAGE_ATTRIBUTION_INVALID")
     previous = conn.execute("SELECT * FROM source_captures WHERE task_id=%s", (task_id,)).fetchone()
     if previous:
-        if (previous["capture_hash"] != packet.capture_hash
-                or previous["content_fingerprint"] != packet.content_fingerprint):
+        if (
+            previous["capture_hash"] != packet.capture_hash
+            or previous["content_fingerprint"] != packet.content_fingerprint
+        ):
             raise ValueError("EVIDENCE_IDEMPOTENCY_MISMATCH")
         return previous
     row = conn.execute(
         "INSERT INTO source_captures(id,owner_id,request_id,request_version,job_id,fence,task_id,"
         "source_id,capture_hash,content_fingerprint,fingerprint_version,profile_id,profile_version,"
         "page_count,created_at) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *",
-        (uuid4(), job["owner_id"], job["request_id"], job["request_version"], job_id, fence,
-         task_id,
-         task["source_id"], packet.capture_hash, packet.content_fingerprint, FINGERPRINT_VERSION,
-         packet.profile_id, packet.profile_version, len(packet.pages), at),
+        (
+            uuid4(),
+            job["owner_id"],
+            job["request_id"],
+            job["request_version"],
+            job_id,
+            fence,
+            task_id,
+            task["source_id"],
+            packet.capture_hash,
+            packet.content_fingerprint,
+            FINGERPRINT_VERSION,
+            packet.profile_id,
+            packet.profile_version,
+            len(packet.pages),
+            at,
+        ),
     ).fetchone()
     for page in packet.pages:
         conn.execute(
             "INSERT INTO captured_pages VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-            (uuid4(), row["id"], page.index, page.url, page.text, page.text_hash,
-             int(page.started_at.timestamp() * 1000), int(page.completed_at.timestamp() * 1000),
-             page.raster.raw_hash, page.raster.sanitized_hash, len(page.raster.data),
-             page.raster.width, page.raster.height, POLICY_VERSION),
+            (
+                uuid4(),
+                row["id"],
+                page.index,
+                page.url,
+                page.text,
+                page.text_hash,
+                int(page.started_at.timestamp() * 1000),
+                int(page.completed_at.timestamp() * 1000),
+                page.raster.raw_hash,
+                page.raster.sanitized_hash,
+                len(page.raster.data),
+                page.raster.width,
+                page.raster.height,
+                POLICY_VERSION,
+            ),
         )
     jobs.event(conn, job, "capture_stored")
     return row
@@ -115,8 +166,11 @@ def save_extraction(conn, job_id, fence, holder, capture_id, extraction: Extract
         "SELECT * FROM source_captures WHERE id=%s AND job_id=%s AND fence=%s",
         (capture_id, job_id, fence),
     ).fetchone()
-    if (capture is None or extraction.source_id != capture["source_id"]
-            or extraction.capture_hash != capture["capture_hash"]):
+    if (
+        capture is None
+        or extraction.source_id != capture["source_id"]
+        or extraction.capture_hash != capture["capture_hash"]
+    ):
         raise ValueError("EVIDENCE_EXTRACTION_ATTRIBUTION_INVALID")
     active_profile(conn, capture["profile_id"], capture["profile_version"])
     validate_usage(extraction, usage)
@@ -130,7 +184,8 @@ def save_extraction(conn, job_id, fence, holder, capture_id, extraction: Extract
     ).fetchall()
     revalidate(extraction, pages, {item["stable_item_key"] for item in keys})
     prior = conn.execute(
-        "SELECT * FROM source_extractions WHERE capture_id=%s", (capture_id,),
+        "SELECT * FROM source_extractions WHERE capture_id=%s",
+        (capture_id,),
     ).fetchone()
     if prior:
         if prior["proposal_hash"] != extraction.proposal_hash:
@@ -138,8 +193,14 @@ def save_extraction(conn, job_id, fence, holder, capture_id, extraction: Extract
         return prior
     row = conn.execute(
         "INSERT INTO source_extractions VALUES(%s,%s,%s,%s,%s,%s) RETURNING *",
-        (uuid4(), capture_id, Jsonb(extraction.model_dump(mode="json")), extraction.proposal_hash,
-         Jsonb(usage), jobs.clock(conn)),
+        (
+            uuid4(),
+            capture_id,
+            Jsonb(extraction.model_dump(mode="json")),
+            extraction.proposal_hash,
+            Jsonb(usage),
+            jobs.clock(conn),
+        ),
     ).fetchone()
     job = current(conn, job_id, fence, holder)
     jobs.event(conn, job, "extraction_stored")
@@ -158,11 +219,15 @@ def complete_set(conn, job):
         "WHERE c.job_id=%s AND c.fence=%s ORDER BY c.source_id",
         (job["id"], job["fence"]),
     ).fetchall()
-    if (not 1 <= len(sources) <= 3 or len(captures) != len(sources)
-            or {c["source_id"] for c in captures} != {s["id"] for s in sources}):
+    if (
+        not 1 <= len(sources) <= 3
+        or len(captures) != len(sources)
+        or {c["source_id"] for c in captures} != {s["id"] for s in sources}
+    ):
         raise ValueError("COMPLETE_EXTRACTION_SET_REQUIRED")
     profiles = conn.execute(
-        "SELECT p.active,p.expires_at FROM source_profiles p JOIN supplier_sources s "
+        "SELECT p.id,p.version,p.profile_json,p.active,p.expires_at "
+        "FROM source_profiles p JOIN supplier_sources s "
         "ON p.id=s.profile_id AND p.version=s.profile_version "
         "WHERE s.request_id=%s AND s.version=%s ORDER BY p.id,p.version FOR SHARE OF p",
         (job["request_id"], job["request_version"]),
@@ -170,31 +235,146 @@ def complete_set(conn, job):
     if len(profiles) != len(sources) or any(not p["active"] for p in profiles):
         raise ValueError("EVIDENCE_PROFILE_NO_LONGER_ACTIVE")
     valid_until = min(p["expires_at"] for p in profiles)
-    keys = {row["stable_item_key"] for row in conn.execute(
-        "SELECT stable_item_key FROM required_items WHERE request_id=%s AND version=%s",
-        (job["request_id"], job["request_version"]),
-    ).fetchall()}
+    keys = {
+        row["stable_item_key"]
+        for row in conn.execute(
+            "SELECT stable_item_key FROM required_items WHERE request_id=%s AND version=%s",
+            (job["request_id"], job["request_version"]),
+        ).fetchall()
+    }
     pages = conn.execute(
-        "SELECT capture_id,page_index,source_text AS text FROM captured_pages "
+        "SELECT capture_id,page_index,source_text AS text,sanitized_png_hash AS sanitized_hash,"
+        "width,height FROM captured_pages "
         "WHERE capture_id=ANY(%s) ORDER BY capture_id,page_index",
         ([capture["id"] for capture in captures],),
     ).fetchall()
     source_by_id = {source["id"]: source for source in sources}
+    observations = {
+        r["capture_id"]: r
+        for r in conn.execute(
+            "SELECT * FROM source_correspondence WHERE capture_id=ANY(%s)",
+            ([capture["id"] for capture in captures],),
+        ).fetchall()
+    }
     for capture in captures:
         source = source_by_id[capture["source_id"]]
         extraction = Extraction.model_validate(capture["proposal_json"])
         captured_pages = [p for p in pages if p["capture_id"] == capture["id"]]
-        if (extraction.source_id != capture["source_id"]
-                or extraction.capture_hash != capture["capture_hash"]
-                or extraction.proposal_hash != capture["proposal_hash"]
-                or (capture["profile_id"], capture["profile_version"]) != (
-                    source["profile_id"], source["profile_version"])
-                or len(captured_pages) != capture["page_count"]
-                or [p["page_index"] for p in captured_pages] != list(range(capture["page_count"]))):
+        if (
+            extraction.source_id != capture["source_id"]
+            or extraction.capture_hash != capture["capture_hash"]
+            or extraction.proposal_hash != capture["proposal_hash"]
+            or (capture["profile_id"], capture["profile_version"])
+            != (source["profile_id"], source["profile_version"])
+            or len(captured_pages) != capture["page_count"]
+            or [p["page_index"] for p in captured_pages] != list(range(capture["page_count"]))
+        ):
             raise ValueError("EVIDENCE_EXTRACTION_ATTRIBUTION_INVALID")
         validate_usage(extraction, capture["usage_json"])
         revalidate(extraction, captured_pages, keys)
+        if capture["id"] not in observations:
+            raise ValueError("COMPLETE_CORRESPONDENCE_SET_REQUIRED")
+        observation = observations[capture["id"]]
+        result = Correspondence.model_validate(observation["result_json"])
+        profile = next(
+            p
+            for p in profiles
+            if (p["id"], p["version"]) == (capture["profile_id"], capture["profile_version"])
+        )
+        if not profile["profile_json"].get("product_image_review", False) and any(
+            o.item_key is not None and o.status != "abstains" for o in result.observations
+        ):
+            raise ValueError("PRODUCT_IMAGE_REVIEW_UNSUPPORTED")
+        if (result.source_id, result.capture_hash, result.result_hash) != (
+            capture["source_id"],
+            capture["capture_hash"],
+            observation["result_hash"],
+        ) or observation["usage_json"].get("calls") != 1:
+            raise ValueError("CORRESPONDENCE_ATTRIBUTION_INVALID")
+        validate_usage(result, observation["usage_json"])
+        validate_correspondence(result, captured_pages, keys)
     return valid_until
+
+
+def complete_capture_set(conn, job):
+    rows = conn.execute(
+        "SELECT s.id,c.id AS capture_id,c.page_count,c.profile_id,c.profile_version,"
+        "p.active,p.expires_at FROM supplier_sources s JOIN source_profiles p "
+        "ON p.id=s.profile_id AND p.version=s.profile_version "
+        "LEFT JOIN source_captures c ON c.source_id=s.id AND c.job_id=%s AND c.fence=%s "
+        "WHERE s.request_id=%s AND s.version=%s ORDER BY s.id FOR SHARE OF p",
+        (job["id"], job["fence"], job["request_id"], job["request_version"]),
+    ).fetchall()
+    if not 1 <= len(rows) <= 3 or any(r["capture_id"] is None for r in rows):
+        raise ValueError("COMPLETE_CAPTURE_SET_REQUIRED")
+    for r in rows:
+        if not r["active"] or r["expires_at"] <= jobs.clock(conn):
+            raise ValueError("EVIDENCE_PROFILE_NO_LONGER_ACTIVE")
+        count = conn.execute(
+            "SELECT count(*) AS n FROM captured_pages WHERE capture_id=%s", (r["capture_id"],)
+        ).fetchone()["n"]
+        if count != r["page_count"]:
+            raise ValueError("COMPLETE_PAGE_SET_REQUIRED")
+    return min(r["expires_at"] for r in rows)
+
+
+def save_correspondence(conn, job_id, fence, holder, capture_id, result, usage):
+    job = current(conn, job_id, fence, holder, renew=True)
+    capture = conn.execute(
+        "SELECT * FROM source_captures WHERE id=%s AND job_id=%s AND fence=%s",
+        (capture_id, job_id, fence),
+    ).fetchone()
+    if capture is None or (result.source_id, result.capture_hash) != (
+        capture["source_id"],
+        capture["capture_hash"],
+    ):
+        raise ValueError("CORRESPONDENCE_ATTRIBUTION_INVALID")
+    active_profile(conn, capture["profile_id"], capture["profile_version"])
+    profile = conn.execute(
+        "SELECT profile_json FROM source_profiles WHERE id=%s AND version=%s",
+        (capture["profile_id"], capture["profile_version"]),
+    ).fetchone()
+    if not profile["profile_json"].get("product_image_review", False) and any(
+        o.item_key is not None and o.status != "abstains" for o in result.observations
+    ):
+        raise ValueError("PRODUCT_IMAGE_REVIEW_UNSUPPORTED")
+    validate_usage(result, usage)
+    if usage["calls"] != 1:
+        raise ValueError("CORRESPONDENCE_CALL_LIMIT")
+    pages = conn.execute(
+        "SELECT source_text AS text,sanitized_png_hash AS sanitized_hash,width,height "
+        "FROM captured_pages WHERE capture_id=%s ORDER BY page_index",
+        (capture_id,),
+    ).fetchall()
+    keys = {
+        r["stable_item_key"]
+        for r in conn.execute(
+            "SELECT stable_item_key FROM required_items WHERE request_id=%s AND version=%s",
+            (job["request_id"], job["request_version"]),
+        ).fetchall()
+    }
+    validate_correspondence(result, pages, keys)
+    prior = conn.execute(
+        "SELECT * FROM source_correspondence WHERE capture_id=%s",
+        (capture_id,),
+    ).fetchone()
+    if prior:
+        if prior["result_hash"] != result.result_hash:
+            raise ValueError("CORRESPONDENCE_IDEMPOTENCY_MISMATCH")
+        return prior
+    row = conn.execute(
+        "INSERT INTO source_correspondence VALUES(%s,%s,%s,%s,%s,%s) RETURNING *",
+        (
+            uuid4(),
+            capture_id,
+            Jsonb(result.model_dump(mode="json")),
+            result.result_hash,
+            Jsonb(usage),
+            jobs.clock(conn),
+        ),
+    ).fetchone()
+    jobs.event(conn, job, "correspondence_stored")
+    return row
 
 
 def artifact(conn, owner_id, artifact_id):
@@ -224,28 +404,62 @@ def list_captures(conn, owner_id, request_id, version):
     ).fetchall()
 
 
-def views(conn, owner_id, request_id, version):
+def views(conn, owner_id, request_id, version, *, capture_id=None):
     results = []
-    for capture in list_captures(conn, owner_id, request_id, version):
+    if capture_id is None:
+        captures = list_captures(conn, owner_id, request_id, version)
+    else:
+        captures = conn.execute(
+            "SELECT c.* FROM source_captures c JOIN jobs j ON j.id=c.job_id AND j.fence=c.fence "
+            "WHERE c.id=%s AND c.owner_id=%s AND j.state='succeeded'",
+            (capture_id, owner_id),
+        ).fetchall()
+        if not captures:
+            raise ApiError(404, "NOT_FOUND", "error.notFound")
+    for capture in captures:
         pages = conn.execute(
             "SELECT * FROM captured_pages WHERE capture_id=%s ORDER BY page_index",
             (capture["id"],),
         ).fetchall()
         proposal = conn.execute(
-            "SELECT id,proposal_json FROM source_extractions WHERE capture_id=%s", (capture["id"],),
+            "SELECT id,proposal_json FROM source_extractions WHERE capture_id=%s",
+            (capture["id"],),
         ).fetchone()
-        results.append(CaptureView(
-            id=capture["id"], source_id=capture["source_id"],
-            request_version=capture["request_version"], capture_hash=capture["capture_hash"],
-            content_fingerprint=capture["content_fingerprint"], profile_id=capture["profile_id"],
-            profile_version=capture["profile_version"],
-            pages=[CapturedPageView(
-                artifact_id=p["id"], page_index=p["page_index"], source_url=p["source_url"],
-                source_text=p["source_text"], text_hash=p["text_hash"],
-                started_at=iso_ms(p["started_at"]), completed_at=iso_ms(p["completed_at"]),
-                sanitized_hash=p["sanitized_png_hash"], width=p["width"], height=p["height"],
-            ) for p in pages],
-            extraction_id=proposal["id"] if proposal else None,
-            extraction=Extraction.model_validate(proposal["proposal_json"]) if proposal else None,
-        ))
+        correspondence = conn.execute(
+            "SELECT result_json FROM source_correspondence WHERE capture_id=%s",
+            (capture["id"],),
+        ).fetchone()
+        results.append(
+            CaptureView(
+                id=capture["id"],
+                source_id=capture["source_id"],
+                request_version=capture["request_version"],
+                capture_hash=capture["capture_hash"],
+                content_fingerprint=capture["content_fingerprint"],
+                profile_id=capture["profile_id"],
+                profile_version=capture["profile_version"],
+                pages=[
+                    CapturedPageView(
+                        artifact_id=p["id"],
+                        page_index=p["page_index"],
+                        source_url=p["source_url"],
+                        source_text=p["source_text"],
+                        text_hash=p["text_hash"],
+                        started_at=iso_ms(p["started_at"]),
+                        completed_at=iso_ms(p["completed_at"]),
+                        sanitized_hash=p["sanitized_png_hash"],
+                        width=p["width"],
+                        height=p["height"],
+                    )
+                    for p in pages
+                ],
+                extraction_id=proposal["id"] if proposal else None,
+                extraction=Extraction.model_validate(proposal["proposal_json"])
+                if proposal
+                else None,
+                correspondence=Correspondence.model_validate(correspondence["result_json"])
+                if correspondence
+                else None,
+            )
+        )
     return results

@@ -60,5 +60,9 @@
     "migration001": "original_checksum_unchanged",
     "application_inventory_before_upgrade": "empty",
     "backup_restore": "pending"
-  }
+  },
+  "historical_checkpoint": true,
+  "current_private_workflow_evidence": "WORKFLOW_STATUS.json",
+  "current_correspondence_evidence": "CORRESPONDENCE_STATUS.json",
+  "current_recovery_evidence": "RECOVERY_STATUS.json"
 }

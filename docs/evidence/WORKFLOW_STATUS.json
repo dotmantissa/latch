@@ -1,0 +1,59 @@
+{
+  "at": "2026-11-05T17:29:03.174340+00:00",
+  "status": "passed",
+  "scope": "private software/security assertions using isolated Neon, plus unresolved actual supplier comparison; no supplier-world release acceptance",
+  "application_schema_version": 10,
+  "implemented": [
+    "immutable source-attributed comparisons",
+    "reviewed integer baskets and deterministic feasible-only ranking",
+    "explicit selection and ten minute canonical approval with recent reauthentication",
+    "all-source bounded recheck and conservative text/raster differences",
+    "atomic idempotent internal receipts with deferred commit authority and eligibility guards",
+    "authorized JSON/PDF/ZIP exports and offline rendering",
+    "API-backed comparison, approval, difference, release status and receipt interfaces"
+  ],
+  "verification": {
+    "local_tests_passed": 176,
+    "local_opt_in_neon_skips": 17,
+    "real_neon_queue_checks_passed": 3,
+    "schema9_release_recovery_migration_checks_passed": 4,
+    "schema10_populated_export_restore_and_commit_boundary_checks_passed": 2,
+    "final_schema10_restored_session_and_released_approval_check_passed": 1,
+    "cancellation_after_completed_recapture_check_passed": 1,
+    "freshness_at_insertion_expired_before_commit": "rejected; zero surviving receipts",
+    "duplicate_release": "same immutable receipt",
+    "revoked_restored_approving_session": "approval invalidated",
+    "selection_or_approval_after_release": "rejected",
+    "authorized_export_retries": "identical bytes and hashes",
+    "typescript_and_pinned_node24_vite_build": "passed"
+  },
+  "browser": {
+    "worksheet_and_empty_comparison": "twelve layouts each, axe, focus, zoom, reduced motion, restart, conflicts, session expiry and logout passed",
+    "actual_source_comparison": "persisted with unknown total and selection/approval denied for missing terms/image abstention; WORKBENCH_STATUS.json"
+  },
+  "actual_source": {
+    "url": "https://store.ui.com/us/en/products/u6-plus",
+    "competing_observed_prices_usd": [
+      129,
+      142
+    ],
+    "price_cents": null,
+    "purchase_terms": "unresolved",
+    "product_image_correspondence": "abstains",
+    "selectable": false
+  },
+  "public_inspection": "gated",
+  "observed_human_review": false,
+  "application_buyer_data_created": false,
+  "unverified": [
+    "qualified complete supplier quote",
+    "actual buyer approval and supplier-world release",
+    "actual external source revision discovery",
+    "manual baseline and buyer value",
+    "public deployment",
+    "production volume encryption and retention consent"
+  ],
+  "correspondence_evidence": "CORRESPONDENCE_STATUS.json",
+  "recovery_evidence": "RECOVERY_STATUS.json",
+  "browser_evidence": "WORKBENCH_STATUS.json"
+}

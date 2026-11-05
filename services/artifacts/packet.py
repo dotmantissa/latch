@@ -23,11 +23,13 @@ def normalize_text(text: str) -> str:
 
 
 def fingerprint(pages: list[dict], profile: SourceProfile) -> str:
-    return content_hash({
-        "projection_version": FINGERPRINT_VERSION,
-        "profile": profile.model_dump(mode="json"),
-        "pages": [{"url": page["url"], "text": normalize_text(page["text"])} for page in pages],
-    })
+    return content_hash(
+        {
+            "projection_version": FINGERPRINT_VERSION,
+            "profile": profile.model_dump(mode="json"),
+            "pages": [{"url": page["url"], "text": normalize_text(page["text"])} for page in pages],
+        }
+    )
 
 
 @dataclass(frozen=True)
@@ -48,6 +50,7 @@ class Packet:
     profile_id: str
     profile_version: int
     pages: tuple[Page, ...]
+    product_image_review: bool = False
 
 
 def prepare(capture_bytes: bytes, profile: SourceProfile, url: str, store: ArtifactStore) -> Packet:
@@ -64,21 +67,33 @@ def prepare(capture_bytes: bytes, profile: SourceProfile, url: str, store: Artif
         end = datetime.fromisoformat(value["completed_at"])
         profile.admit(url, end)
         raw = base64.b64decode(
-            capture["png_base64"] if index == 0 else value["png_base64"], validate=True,
+            capture["png_base64"] if index == 0 else value["png_base64"],
+            validate=True,
         )
         raster = sanitize(raw)
         total += len(raster.data) + len(value["text"].encode())
         if total > MAX_BYTES:
             raise ValueError("SANITIZED_CAPTURE_CONTENT_LIMIT")
-        pages.append(Page(
-            index=index, url=value["url"], text=value["text"], text_hash=value["text_sha256"],
-            started_at=start, completed_at=end, raster=raster,
-        ))
+        pages.append(
+            Page(
+                index=index,
+                url=value["url"],
+                text=value["text"],
+                text_hash=value["text_sha256"],
+                started_at=start,
+                completed_at=end,
+                raster=raster,
+            )
+        )
     # Every page passed before admitting files. Interrupted DB work may leave private orphan
     # content-addressed files, never an authorized record pointing at a partial file.
     for page in pages:
         store.put(page.raster)
     return Packet(
-        capture_hash=digest, content_fingerprint=fingerprint(capture["pages"], profile),
-        profile_id=profile.id, profile_version=profile.version, pages=tuple(pages),
+        capture_hash=digest,
+        content_fingerprint=fingerprint(capture["pages"], profile),
+        profile_id=profile.id,
+        profile_version=profile.version,
+        pages=tuple(pages),
+        product_image_review=profile.product_image_review,
     )

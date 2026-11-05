@@ -29,5 +29,9 @@
   "supplier_qualification": "pending",
   "buyer_acceptance": "pending",
   "supplier_vision_correspondence": "pending",
-  "public_inspection": "gated"
+  "public_inspection": "gated",
+  "historical_checkpoint": true,
+  "current_private_workflow_evidence": "WORKFLOW_STATUS.json",
+  "current_correspondence_evidence": "CORRESPONDENCE_STATUS.json",
+  "current_recovery_evidence": "RECOVERY_STATUS.json"
 }

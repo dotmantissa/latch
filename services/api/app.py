@@ -33,9 +33,10 @@ from services.api.auth import (
 )
 from services.api.errors import ApiError
 from services.api.settings import AppSettings
+from services.artifacts import exports
 from services.artifacts.contracts import CaptureView
 from services.artifacts.sanitize import POLICY_VERSION, ArtifactRejected, dimensions
-from services.artifacts.store import ArtifactStore
+from services.artifacts.store import ArtifactStore, BinaryStore
 from services.common.config import read_secret
 from services.common.source_policy import StrictRecord
 from services.domain.contracts import (
@@ -48,8 +49,18 @@ from services.domain.contracts import (
     SessionView,
     utc_string,
 )
+from services.domain.decisions import (
+    ApprovalInput,
+    ApprovalView,
+    CompareInput,
+    ComparisonView,
+    DecisionView,
+    SelectionInput,
+    SelectionView,
+)
+from services.domain.releases import ReceiptView, ReleaseAttemptView, ReleaseInput
 from services.domain.reviews import ReviewInput
-from services.storage import evidence, jobs, reviews
+from services.storage import decisions, evidence, jobs, releases, reviews
 from services.storage import requests as store
 from services.storage.database import database
 from services.storage.reviews import ReviewPage, ReviewView, SourceReviewView
@@ -175,6 +186,8 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
                     formats += ("text/event-stream",)
                 if request.url.path.startswith("/api/v1/artifacts/") and request.method == "GET":
                     formats += ("image/png",)
+                if "/exports/" in request.url.path and request.method == "GET":
+                    formats += ("application/pdf", "application/zip", "application/octet-stream")
                 if not any(kind in accepted for kind in formats):
                     raise ApiError(406, "JSON_REQUIRED", "error.format")
                 if request.method in ("POST", "PATCH", "DELETE", "PUT"):
@@ -387,15 +400,20 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
 
     @app.get("/api/v1/requests/{request_id}/evidence", response_model=Envelope[list[CaptureView]])
     def captured_evidence(
-        request_id: UUID, request: Request, version: int | None = Query(None, ge=1),
+        request_id: UUID,
+        request: Request,
+        version: int | None = Query(None, ge=1),
     ):
         with authorized(request) as (conn, row):
             saved = store.view(conn, row["user_id"], request_id, version)
             result = evidence.views(conn, row["user_id"], request_id, saved.version)
         return Envelope(data=result, resource_version=saved.version)
 
-    @app.get("/api/v1/artifacts/{artifact_id}", response_class=Response,
-             responses={200: {"content": {"image/png": {}}}})
+    @app.get(
+        "/api/v1/artifacts/{artifact_id}",
+        response_class=Response,
+        responses={200: {"content": {"image/png": {}}}},
+    )
     def captured_artifact(artifact_id: UUID, request: Request):
         with authorized(request) as (conn, row):
             record = evidence.artifact(conn, row["user_id"], artifact_id)
@@ -408,13 +426,18 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
                 raise ArtifactRejected("ARTIFACT_DIMENSIONS_MISMATCH")
         except (ArtifactRejected, OSError):
             raise ApiError(503, "ARTIFACT_UNAVAILABLE") from None
-        return Response(value, media_type="image/png", headers={
-            "Content-Disposition": f'inline; filename="{artifact_id}.png"',
-            "Cross-Origin-Resource-Policy": "same-origin",
-        })
+        return Response(
+            value,
+            media_type="image/png",
+            headers={
+                "Content-Disposition": f'inline; filename="{artifact_id}.png"',
+                "Cross-Origin-Resource-Policy": "same-origin",
+            },
+        )
 
     @app.get(
-        "/api/v1/extractions/{extraction_id}/review", response_model=Envelope[SourceReviewView],
+        "/api/v1/extractions/{extraction_id}/review",
+        response_model=Envelope[SourceReviewView],
     )
     def source_review(extraction_id: UUID, request: Request, response: Response):
         with authorized(request) as (conn, row):
@@ -422,18 +445,36 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
         response.headers["ETag"] = f'"{result.review_version}"'
         return Envelope(data=result, resource_version=result.review_version)
 
+    @app.get("/api/v1/captures/{capture_id}", response_model=Envelope[CaptureView])
+    def capture_history(capture_id: UUID, request: Request):
+        with authorized(request) as (conn, row):
+            return Envelope(
+                data=evidence.views(conn, row["user_id"], None, None, capture_id=capture_id)[0]
+            )
+
     @app.get("/api/v1/extractions/{extraction_id}/reviews", response_model=Envelope[ReviewPage])
     def review_history(
-        extraction_id: UUID, request: Request,
-        before: int | None = Query(None, ge=1, le=10001), limit: int = Query(25, ge=1, le=50),
+        extraction_id: UUID,
+        request: Request,
+        before: int | None = Query(None, ge=1, le=10001),
+        limit: int = Query(25, ge=1, le=50),
     ):
         with authorized(request) as (conn, row):
-            return Envelope(data=reviews.history(
-                conn, row["user_id"], extraction_id, before, limit,
-            ))
+            return Envelope(
+                data=reviews.history(
+                    conn,
+                    row["user_id"],
+                    extraction_id,
+                    before,
+                    limit,
+                )
+            )
 
-    @app.post("/api/v1/extractions/{extraction_id}/reviews", status_code=201,
-              response_model=Envelope[ReviewView])
+    @app.post(
+        "/api/v1/extractions/{extraction_id}/reviews",
+        status_code=201,
+        response_model=Envelope[ReviewView],
+    )
     def review_field(extraction_id: UUID, body: ReviewInput, request: Request, response: Response):
         tag = request.headers.get("if-match", "")
         if not re.fullmatch(r'"(?:0|[1-9][0-9]{0,3})"', tag):
@@ -450,6 +491,147 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
         with authorized(request) as (conn, row):
             store.owned(conn, row["user_id"], request_id)
             raise ApiError(503, "WORKER_UNAVAILABLE", "error.worker")
+
+    @app.get("/api/v1/requests/{request_id}/decision", response_model=Envelope[DecisionView])
+    def decision_state(request_id: UUID, request: Request):
+        with authorized(request) as (conn, row):
+            return Envelope(data=decisions.state(conn, row["user_id"], request_id))
+
+    @app.post("/api/v1/requests/{request_id}/comparisons", response_model=Envelope[ComparisonView])
+    def compare_sources(request_id: UUID, body: CompareInput, request: Request):
+        if expected(request) != body.request_version:
+            raise ApiError(412, "VERSION_PRECONDITION", "error.conflict")
+        with authorized(request) as (conn, row):
+            return Envelope(
+                data=decisions.compare(conn, row["user_id"], request_id, body.request_version)
+            )
+
+    @app.post("/api/v1/requests/{request_id}/selections", response_model=Envelope[SelectionView])
+    def select_source(request_id: UUID, body: SelectionInput, request: Request):
+        if expected(request) != body.request_version:
+            raise ApiError(412, "VERSION_PRECONDITION", "error.conflict")
+        with authorized(request) as (conn, row):
+            return Envelope(
+                data=decisions.choose(conn, row["user_id"], request_id, body, key(request))
+            )
+
+    @app.post("/api/v1/requests/{request_id}/approvals", response_model=Envelope[ApprovalView])
+    def approve_version(request_id: UUID, body: ApprovalInput, request: Request):
+        if expected(request) != body.request_version:
+            raise ApiError(412, "VERSION_PRECONDITION", "error.conflict")
+        with authorized(request) as (conn, row):
+            return Envelope(
+                data=decisions.approve(conn, row["user_id"], request_id, row, body, key(request))
+            )
+
+    @app.post("/api/v1/approvals/{approval_id}/revoke", response_model=Envelope[ApprovalView])
+    def revoke_approval(approval_id: UUID, request: Request):
+        with authorized(request) as (conn, row):
+            return Envelope(data=decisions.revoke(conn, row["user_id"], approval_id))
+
+    @app.post(
+        "/api/v1/requests/{request_id}/release-attempts",
+        response_model=Envelope[ReleaseAttemptView],
+    )
+    def release_begin(request_id: UUID, body: ReleaseInput, request: Request):
+        if expected(request) != body.request_version:
+            raise ApiError(412, "VERSION_PRECONDITION", "error.conflict")
+        with authorized(request) as (conn, row):
+            return Envelope(
+                data=releases.begin(conn, row["user_id"], request_id, row, body, key(request))
+            )
+
+    @app.get("/api/v1/release-attempts/{attempt_id}", response_model=Envelope[ReleaseAttemptView])
+    def release_status(attempt_id: UUID, request: Request):
+        with authorized(request) as (conn, row):
+            return Envelope(data=releases.view(conn, row["user_id"], attempt_id))
+
+    @app.post(
+        "/api/v1/release-attempts/{attempt_id}/cancel", response_model=Envelope[ReleaseAttemptView]
+    )
+    def cancel_release(attempt_id: UUID, request: Request):
+        with authorized(request) as (conn, row):
+            return Envelope(data=releases.cancel(conn, row["user_id"], attempt_id))
+
+    @app.get(
+        "/api/v1/requests/{request_id}/release-attempts",
+        response_model=Envelope[list[ReleaseAttemptView]],
+    )
+    def release_history(request_id: UUID, request: Request):
+        with authorized(request) as (conn, row):
+            store.owned(conn, row["user_id"], request_id)
+            ids = conn.execute(
+                "SELECT id FROM release_attempts WHERE request_id=%s "
+                "ORDER BY created_at DESC,id DESC LIMIT 20",
+                (request_id,),
+            ).fetchall()
+            return Envelope(data=[releases.view(conn, row["user_id"], a["id"]) for a in ids])
+
+    @app.get("/api/v1/releases/{receipt_id}", response_model=Envelope[ReceiptView])
+    def released_receipt(receipt_id: UUID, request: Request):
+        with authorized(request) as (conn, row):
+            return Envelope(data=releases.receipt(conn, row["user_id"], receipt_id))
+
+    @app.get("/api/v1/releases/{receipt_id}/exports/{format}", response_class=Response)
+    def export_receipt(receipt_id: UUID, format: str, request: Request):
+        if format not in exports.MEDIA:
+            raise ApiError(404, "NOT_FOUND", "error.notFound")
+        with authorized(request) as (conn, row):
+            receipt = releases.receipt(conn, row["user_id"], receipt_id)
+            existing = conn.execute(
+                "SELECT * FROM receipt_exports WHERE receipt_id=%s AND format=%s",
+                (receipt_id, format),
+            ).fetchone()
+            pages = []
+            if not existing and format == "zip":
+                ids = [
+                    s["capture_id"]
+                    for s in receipt.record["approved_packet"]["comparison"]["sources"]
+                ]
+                ids += [s["capture_id"] for s in receipt.record["fresh_sources"]]
+                pages = conn.execute(
+                    "SELECT p.* FROM captured_pages p JOIN source_captures c "
+                    "ON c.id=p.capture_id WHERE c.owner_id=%s AND c.id=ANY(%s::uuid[]) "
+                    "ORDER BY p.id",
+                    (row["user_id"], ids),
+                ).fetchall()
+        try:
+            with BinaryStore(settings.evidence_dir.parent / "exports") as files:
+                if existing:
+                    value = files.read(existing["content_hash"], size=existing["bytes"])
+                    digest = existing["content_hash"]
+                else:
+                    with ArtifactStore(settings.evidence_dir) as images:
+                        captured = [
+                            (p, images.read(p["sanitized_png_hash"], size=p["sanitized_bytes"]))
+                            for p in pages
+                        ]
+                    value = exports.build(receipt, format, captured)
+                    digest = files.put_bytes(value)
+        except (ArtifactRejected, OSError):
+            raise ApiError(503, "EXPORT_UNAVAILABLE") from None
+        # Reauthorize after offline rendering; logout/expiry cannot receive new download bytes.
+        with authorized(request) as (conn, row):
+            releases.receipt(conn, row["user_id"], receipt_id)
+            conn.execute(
+                "INSERT INTO receipt_exports VALUES(%s,%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING",
+                (receipt_id, format, exports.VERSION, digest, len(value), jobs.clock(conn)),
+            )
+            saved = conn.execute(
+                "SELECT content_hash,bytes FROM receipt_exports WHERE receipt_id=%s AND format=%s",
+                (receipt_id, format),
+            ).fetchone()
+            if saved["content_hash"] != digest or saved["bytes"] != len(value):
+                raise ApiError(503, "EXPORT_HASH_MISMATCH")
+        return Response(
+            value,
+            media_type=exports.MEDIA[format],
+            headers={
+                "Content-Disposition": f'attachment; filename="latch-{receipt_id}.{format}"',
+                "X-Content-SHA256": digest,
+                "Cache-Control": "no-store",
+            },
+        )
 
     def job_view(row):
         return JobView(

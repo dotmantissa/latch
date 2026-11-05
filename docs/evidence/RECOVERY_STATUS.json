@@ -1,0 +1,50 @@
+{
+  "at": "2026-11-05T17:29:03.174340+00:00",
+  "status": "passed",
+  "scope": "encrypted consistent backups and isolated restores; no production cutover",
+  "backup_encryption": "AES256 GCM, fresh nonce, authenticated envelope",
+  "consistent_snapshot": "PostgreSQL repeatable read, bounded server cursor rows, verified immutable migration checksums and referenced byte hashes",
+  "plaintext_backup_file_written": false,
+  "legacy_recovery": {
+    "actual_application_source_schema": 4,
+    "source_application_inventory": "empty",
+    "encrypted_pre_upgrade_backup": "verified",
+    "isolated_restore_target_schema": 9,
+    "result": "passed"
+  },
+  "current_recovery": {
+    "source_and_restore_schema": 10,
+    "populated_isolated_source": true,
+    "receipt_records_and_hashes_preserved": true,
+    "sanitized_evidence_bytes_and_hashes_preserved": true,
+    "three_authorized_export_formats_preserved": true,
+    "all_restored_sessions_revoked": true,
+    "restored_approving_session_state": "invalidated",
+    "exact_isolated_schemas_removed": true
+  },
+  "application_upgrade": {
+    "from_schema": 4,
+    "to_schema": 10,
+    "encrypted_pre_upgrade_recovery_point": true,
+    "immutable_migration_history_verified": true,
+    "all_application_inventory_counts": 0,
+    "result": "passed"
+  },
+  "bounds": {
+    "plaintext_bundle_bytes": 67108864,
+    "rows_per_table": 10000,
+    "binary_file_bytes": 73400320,
+    "renderer_input_output_bytes": 2097152,
+    "renderer_wall_seconds": 12
+  },
+  "retention": "archive preserves history; no automatic destruction or backup purge",
+  "remote_container_cleanup_inferred_from_restore": false,
+  "production_cutover": false,
+  "unverified": [
+    "production encrypted persistent volume",
+    "separately held secure key recovery copy",
+    "retention consent",
+    "production disaster recovery drill and cutover",
+    "large volume streaming recovery beyond current bounds"
+  ]
+}

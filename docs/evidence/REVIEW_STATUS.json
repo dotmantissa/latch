@@ -25,5 +25,9 @@
   "source_workbench": "implemented_with_automated_actual_browser_checks",
   "buyer_acceptance_and_release": "pending",
   "public_inspection": "gated",
-  "source_workbench_evidence": "WORKBENCH_STATUS.json"
+  "source_workbench_evidence": "WORKBENCH_STATUS.json",
+  "historical_checkpoint": true,
+  "current_private_workflow_evidence": "WORKFLOW_STATUS.json",
+  "current_correspondence_evidence": "CORRESPONDENCE_STATUS.json",
+  "current_recovery_evidence": "RECOVERY_STATUS.json"
 }

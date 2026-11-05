@@ -227,7 +227,7 @@ def view(conn, owner_id, extraction_id):
             reviewed_offer(extraction, [r.decision for r in latest]),
             snapshot["budget_cents"],
             datetime.fromisoformat(snapshot["required_by"]),
-            datetime.now(UTC),
+            datetime.fromtimestamp(jobs.clock(conn) / 1000, UTC),
         )
     current = is_current(conn, capture, request)
     blocker = None

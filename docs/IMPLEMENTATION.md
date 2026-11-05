@@ -1,6 +1,8 @@
 # Implementation roadmap and work packages
 
-This roadmap defines finish gates. The provider independent foundation, identity and saved worksheet are implemented; their checks are described in [LOCAL.md](LOCAL.md) and [worksheet evidence](evidence/WORKSHEET_STATUS.json). PostgreSQL backup/restore and release constraints remain deferred alongside the live workflow. Actual Vultr text/tools/image and isolated worker infrastructure are verified in [worker evidence](evidence/WORKER_STATUS.json). Private mTLS supervision, durable Postgres jobs, fenced recovery and stored SSE are implemented; [P4 scope](SUPERVISOR.md) separates technical infrastructure checks from pending supplier inspection, review and release acceptance. Root TASKS.md remains the one local recovery checklist and is not a deliverable to commit. The user now authorizes repository creation, a commit for each implementation step and push to https://github.com/dotmantissa/latch. Use only dotmantissa <negativemantissa@gmail.com> as author/committer with no coauthor trailer. Deployment and submission require separate authorization.
+This roadmap defines finish gates. The provider independent foundation, identity and saved worksheet are implemented; their checks are described in [LOCAL.md](LOCAL.md) and [worksheet evidence](evidence/WORKSHEET_STATUS.json). Private comparisons, approval, commit-guarded release, exports and encrypted isolated
+backup/restore are implemented; [decision scope](WORKFLOW.md) separates software
+verification from unverified buyer/supplier acceptance. Actual Vultr text/tools/image and isolated worker infrastructure are verified in [worker evidence](evidence/WORKER_STATUS.json). Private mTLS supervision, durable Postgres jobs, fenced recovery and stored SSE are implemented; [P4 scope](SUPERVISOR.md) separates technical infrastructure checks from pending supplier inspection, review and release acceptance. Root TASKS.md remains the one local recovery checklist and is not a deliverable to commit. The user now authorizes repository creation, a commit for each implementation step and push to https://github.com/dotmantissa/latch. Use only dotmantissa <negativemantissa@gmail.com> as author/committer with no coauthor trailer. Deployment and submission require separate authorization.
 
 Package order follows dependencies, not page decoration. Each package finishes with its named evidence and a TASKS.md update. The user explicitly authorizes deferring live P0 to implement the provider independent packages and using Neon Postgres instead of SQLite. Frontend work must begin from the recorded design roll/token plan and use real API data; an empty/error state is preferable to fabricated content.
 
@@ -53,10 +55,9 @@ ownership-checked artifact routes are implemented; see [evidence boundary](EVIDE
 Individual owner-attributed confirm/correct/dispute records, revision preconditions,
 history and derived basket checks are implemented; see [review API](REVIEWS.md).
 The API-backed individual source review interface is implemented. Supplier image
-correspondence and observed human review remain pending.
+correspondence is implemented with enforced abstention; observed human review remains pending.
 The runner persists sanitized captures and grounded proposals with bounded inference,
-lease renewal, cancellation and complete-set validation. The full comparison workflow
-is still pending.
+lease renewal, cancellation and complete-set validation. Persisted comparison and feasible-only selection are available.
 
 Implement typed public-only model context, bounded page/region/terms tools, structured extraction, source span checks and vision correspondence call. Record prompts/model/schema versions and actual usage privately. Schema repairs stay bounded; no model authority modules available. Inconsistent/missing terms stay unknown/disputed.
 
@@ -65,6 +66,10 @@ Build comparison ledger and evidence pane with crop/zoom/text attribution, field
 Finish evidence: a human reviews a real supported source packet, checks/corrects fields and obtains matching deterministic totals. Inspect exact screenshot/source ranges. Test unknown terms and wrong-item/quantity basis where encountered; do not label model agreement as source truth. Count review/correction effort.
 
 ## P6. Approval, source diff and durable release
+
+Private software is implemented and checked through real Neon authority assertions,
+including expiry during commit. Actual qualified supplier/buyer release acceptance remains
+pending; see [workflow scope](WORKFLOW.md).
 
 Implement server-constructed canonical approval/expiry, recent reauth, selection/version preconditions and revoke behavior. Build approval summary dialog and the stateful latch seam. Never show approved until the server persists it.
 
@@ -75,6 +80,10 @@ Build real diff route with old/new evidence, changed total/eligibility, preserve
 Finish evidence: actual approved/rechecked source set and one durable internal release, duplicate submission same receipt, concurrent edit/revocation stops commit, expired approval/freshness denied, unavailable source fails closed, restart-before/after-commit behavior. Real source revision evidence only when observable; security transition assertions may test pure domain preconditions but are not supplier-world evidence.
 
 ## P7. Receipt, export, retention and operator recovery
+
+Immutable receipt and authorized exports are implemented. Populated isolated encrypted
+restore and legacy pre-upgrade recovery passed; [recovery scope](RECOVERY.md) records
+limits and outstanding production/retention consent.
 
 Implement immutable receipt page and PDF/JSON/manifest packet export using an offline bounded renderer, escaped templates and authorized attachment delivery. Hash exported bytes. Add private artifact ownership, request archive, explicit retention/deletion behavior and consistent encrypted backups/restores. Include the Latch mark and scope statement across receipt/export. No external source URL access while renderingPDF.
 

@@ -229,6 +229,14 @@ def main():
                 json.dumps(value, indent=2) + "\n"
             ),
         )
+        from services.runner.correspondence import correspond
+
+        image, image_usage = correspond(
+            VultrClient(Settings(model_id="qwen3.8-flash-next",
+                                 inference_key_file=Path("private/vultr-inference-key")),
+                        output_token_limit=4096),
+            packet, source, [item], deadline=time.monotonic() + 45,
+        )
         offer = unreviewed_offer(proposal)
         assert not offer.terms_reviewed and not any(line.reviewed for line in offer.lines)
         price = next(f for f in proposal.fields if f.kind == "price_cents")
@@ -258,6 +266,9 @@ def main():
             )
             extracted = evidence.save_extraction(
                 c, job["id"], job["fence"], holder, saved["id"], proposal, usage
+            )
+            evidence.save_correspondence(
+                c, job["id"], job["fence"], holder, saved["id"], image, image_usage,
             )
             assert (
                 evidence.save_extraction(

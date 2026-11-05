@@ -22,6 +22,7 @@ class SourceProfile(StrictRecord):
     main_selector: str = Field(min_length=1, max_length=300)
     terms_selector: str | None = Field(default=None, max_length=300)
     asset_origins: list[str] = Field(default_factory=list, max_length=10)
+    product_image_review: StrictBool = False
     expires_at: datetime
 
     @field_validator("origin")

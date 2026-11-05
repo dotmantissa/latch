@@ -10,7 +10,7 @@ from psycopg import sql
 from psycopg.conninfo import conninfo_to_dict, make_conninfo
 from psycopg.rows import dict_row
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 10
 
 
 def migrations() -> list[tuple[int, str, str]]:

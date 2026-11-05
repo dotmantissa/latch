@@ -16,10 +16,11 @@ from services.artifacts.store import ArtifactStore
 from services.common.source_policy import SourceProfile
 from services.common.task_contracts import TaskCommand, TaskRef
 from services.domain.contracts import RequestItem
+from services.runner.correspondence import correspond
 from services.runner.extraction import extract
 from services.runner.supervisor import SupervisorClient, SupervisorRejected, SupervisorUnavailable
 from services.runner.vultr import ProviderFailure, VultrClient
-from services.storage import evidence, jobs
+from services.storage import evidence, jobs, releases
 from services.storage.database import database
 
 
@@ -171,7 +172,7 @@ class Runner:
                                     c, job["id"], job["fence"], self.holder,
                                     task["task_id"], packet,
                                 )
-                        if outcome == "captured":
+                        if outcome == "captured" and job["kind"] == "inspect":
                             self.checkpoint(job, profile)
                             with self.db() as c:
                                 live = evidence.current(c, job["id"], job["fence"], self.holder)
@@ -189,6 +190,17 @@ class Runner:
                                 evidence.save_extraction(
                                     c, job["id"], job["fence"], self.holder,
                                     saved["id"], proposal, usage,
+                                )
+                            observation, image_usage = correspond(
+                                VultrClient(self.settings, output_token_limit=4096),
+                                packet, source["id"], items, deadline=deadline,
+                                on_invalid=self.on_invalid,
+                                checkpoint=lambda profile=profile: self.checkpoint(job, profile),
+                            )
+                            with self.db() as c:
+                                evidence.save_correspondence(
+                                    c, job["id"], job["fence"], self.holder,
+                                    saved["id"], observation, image_usage,
                                 )
                         break
                     self.stop.wait(0.5)
@@ -228,6 +240,11 @@ class Runner:
         while not self.stop.is_set():
             try:
                 self.reconcile()
+                with self.db() as c:
+                    finished = releases.reconcile(c)
+                for attempt in finished:
+                    with self.db() as c:
+                        releases.finalize(c, attempt)
                 with self.db() as c:
                     job = jobs.claim(c, self.holder)
                 if job:

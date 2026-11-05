@@ -123,3 +123,13 @@ Evidence is a raster image plus UTF8text and metadata; no supplier HTML/SVG is s
 Packet export contains an immutable receiptJSON, human-readable receiptPDF produced from escaped trusted templates in an offline bounded renderer, source indexJSON, consented raster captures and README-style plain text scope. No network fetch while rendering/exporting. Exclude raw prompt transcripts, cookies, credentials, private runtime paths and unrelated annotations. Owner explicitly downloads; sharing is not automatic. Content-Disposition attachment with generated safe filename, nosniff/no-store, no sensitive title in public URL.
 
 A generatedPDF is only an alternate view of the durableJSON record. Export failure leaves the release valid and retryable, never creates another release. Store output hashes and verify download bytes against them.
+
+## Implemented private workflow additions
+
+The strict generated contracts now include immutable raster correspondence, complete
+comparison signatures, explicit selection revisions, canonical expiring approvals,
+all-source release attempts/diffs, commit-guarded receipts and hashed exports. See
+[workflow](WORKFLOW.md), [correspondence](CORRESPONDENCE.md) and [recovery](RECOVERY.md)
+for the actual routes, limits and observed scope. Migrations001–004 remain immutable;
+new functionality uses additive numbered migrations. Supplier-world/buyer acceptance
+remains distinct from isolated security assertions.

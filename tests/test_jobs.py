@@ -11,6 +11,8 @@ from psycopg.types.json import Jsonb
 from services.api.errors import ApiError
 from services.artifacts.packet import Packet, Page
 from services.artifacts.sanitize import sanitize
+from services.domain.correspondence import ProposedCorrespondence
+from services.domain.correspondence import ground as ground_image
 from services.domain.extraction import ProposedTerms, ground
 from services.storage import evidence, jobs
 from services.storage.database import database
@@ -211,6 +213,18 @@ def test_cancel_and_complete_capture_require_exact_task_cleanup_and_extraction(q
             c, job["id"], job["fence"], job["lease_holder"], saved["id"], extracted, usage,
         )["id"] == stored["id"]
         assert evidence.views(c, owner, rid, 1) == []
+        image = ground_image(ProposedCorrespondence(observations=[
+            {"page_index": 0, "item_key": key, "status": "abstains", "reason": "not_visible",
+             "evidence": [], "region": None} for key in (None, "assertion")
+        ]), source_id=source, capture_hash=packet.capture_hash,
+            pages=[{"text": text, "sanitized_hash": raster.sanitized_hash,
+                    "width": raster.width, "height": raster.height}],
+            item_keys={"assertion"}, model_id="assertion")
+        with pytest.raises(ValueError, match="CORRESPONDENCE"), c.transaction():
+            jobs.finish(c, job["id"], job["fence"], job["lease_holder"], success=True)
+        evidence.save_correspondence(
+            c, job["id"], job["fence"], job["lease_holder"], saved["id"], image, usage,
+        )
         jobs.heartbeat(c, job["id"], job["fence"], job["lease_holder"])
         c.execute("UPDATE source_profiles SET active=false WHERE id=%s", (source_profile,))
         with pytest.raises(ValueError, match="PROFILE"), c.transaction():

@@ -31,8 +31,8 @@ migrations stay unchanged. The API exposes the original field, latest attributed
 decision, checked count and a paginated history. Derived basket calculation uses the
 existing integer rules. A line is reviewed only after every required item field is
 checked; source terms require their own complete checks. Missing or disputed terms
-remain null and block feasibility. This implementation does not create an approval,
-selection, order or release.
+remain null and block feasibility. Reviews feed the [decision workflow](WORKFLOW.md). Individual review alone creates no
+approval or release and never places a supplier order.
 
 Available routes:
 

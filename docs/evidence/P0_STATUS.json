@@ -33,5 +33,9 @@
     "worker_isolation": "actual_technical_capture_network_watchdog_cleanup_passed"
   },
   "authorization_updated_at": "2026-11-04T09:29:21.216410+00:00",
-  "infrastructure_evidence": "WORKER_STATUS.json"
+  "infrastructure_evidence": "WORKER_STATUS.json",
+  "historical_checkpoint": true,
+  "current_private_workflow_evidence": "WORKFLOW_STATUS.json",
+  "current_correspondence_evidence": "CORRESPONDENCE_STATUS.json",
+  "current_recovery_evidence": "RECOVERY_STATUS.json"
 }

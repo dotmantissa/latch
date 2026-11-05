@@ -79,7 +79,8 @@ def enqueue(conn, owner_id, request_id, version: int, key: str, *, kind="inspect
         "INSERT INTO jobs(id,owner_id,request_id,request_version,kind,state,idempotency_key,"
         "intent_hash,created_at,deadline_at) VALUES(%s,%s,%s,%s,%s,'queued',%s,%s,%s,%s) "
         "RETURNING *",
-        (uuid4(), owner_id, request_id, version, kind, key, intent, at, at + 180_000),
+        (uuid4(), owner_id, request_id, version, kind, key, intent, at,
+         at + (60000 if kind == "recheck" else 180000)),
     ).fetchone()
     event(conn, row, "job_queued")
     return row
@@ -239,9 +240,11 @@ def finish(conn, job_id, fence, holder, *, success: bool):
         ).fetchone()["n"]
         if not expected or counts != expected:
             raise ValueError("COMPLETE_CAPTURE_SET_REQUIRED")
-        from services.storage.evidence import complete_set
+        from services.storage.evidence import complete_capture_set, complete_set
 
-        profiles_valid_until = complete_set(conn, row)
+        profiles_valid_until = (complete_capture_set if row["kind"] == "recheck" else complete_set)(
+            conn, row,
+        )
         # Validation takes real time; refuse publication if the lease/deadline elapsed.
         leased(conn, job_id, fence, holder)
         at = clock(conn)

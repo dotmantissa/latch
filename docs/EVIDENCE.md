@@ -21,8 +21,8 @@ Admission requires Linux `renameat2` with `RENAME_NOREPLACE`, avoiding an interm
 hardlink or partial target if the runner stops during a write.
 Reads reject symlinks, hardlinks, special files, public permissions, size disagreement
 and changed hashes. Raw worker bytes remain separately quarantined and have no product
-download route. Interrupted persistence can leave private orphan files; retention and
-encrypted backup/restore are still pending and files must not be deleted blindly.
+download route. Interrupted persistence can leave private orphan files; retention consent remains pending; [encrypted isolated backup/restore](RECOVERY.md)
+is implemented and files must not be deleted blindly.
 
 Migration 003 adds immutable captures, page metadata/text and provisional extractions.
 It preserves migrations 001 and 002. Composite foreign keys bind each capture to its
@@ -75,4 +75,5 @@ technical-documentation evidence:
 
 See [public evidence scope](evidence/EVIDENCE_STATUS.json) and
 [supplier research](SOURCE_RESEARCH.md). Actual human review, supplier image
-correspondence, buyer fit, complete terms and release acceptance remain pending.
+[image correspondence](CORRESPONDENCE.md) is implemented with enforced abstention.
+Buyer fit, complete terms and actual supplier/buyer release acceptance remain pending.

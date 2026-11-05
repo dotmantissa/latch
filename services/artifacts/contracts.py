@@ -4,6 +4,7 @@ from typing import Literal
 from uuid import UUID
 
 from services.common.source_policy import StrictRecord
+from services.domain.correspondence import Correspondence
 from services.domain.extraction import Extraction
 
 
@@ -32,3 +33,4 @@ class CaptureView(StrictRecord):
     pages: list[CapturedPageView]
     extraction_id: UUID | None
     extraction: Extraction | None
+    correspondence: Correspondence | None = None

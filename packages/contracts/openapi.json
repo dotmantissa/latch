@@ -583,6 +583,46 @@
         }
       }
     },
+    "/api/v1/captures/{capture_id}": {
+      "get": {
+        "summary": "Capture History",
+        "operationId": "capture_history_api_v1_captures__capture_id__get",
+        "parameters": [
+          {
+            "name": "capture_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Capture Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_CaptureView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/extractions/{extraction_id}/reviews": {
       "get": {
         "summary": "Review History",
@@ -749,6 +789,486 @@
         }
       }
     },
+    "/api/v1/requests/{request_id}/decision": {
+      "get": {
+        "summary": "Decision State",
+        "operationId": "decision_state_api_v1_requests__request_id__decision_get",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_DecisionView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/requests/{request_id}/comparisons": {
+      "post": {
+        "summary": "Compare Sources",
+        "operationId": "compare_sources_api_v1_requests__request_id__comparisons_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompareInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ComparisonView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/requests/{request_id}/selections": {
+      "post": {
+        "summary": "Select Source",
+        "operationId": "select_source_api_v1_requests__request_id__selections_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SelectionView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/requests/{request_id}/approvals": {
+      "post": {
+        "summary": "Approve Version",
+        "operationId": "approve_version_api_v1_requests__request_id__approvals_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ApprovalView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/approvals/{approval_id}/revoke": {
+      "post": {
+        "summary": "Revoke Approval",
+        "operationId": "revoke_approval_api_v1_approvals__approval_id__revoke_post",
+        "parameters": [
+          {
+            "name": "approval_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Approval Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ApprovalView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/requests/{request_id}/release-attempts": {
+      "post": {
+        "summary": "Release Begin",
+        "operationId": "release_begin_api_v1_requests__request_id__release_attempts_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReleaseInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReleaseAttemptView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Release History",
+        "operationId": "release_history_api_v1_requests__request_id__release_attempts_get",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_ReleaseAttemptView__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/release-attempts/{attempt_id}": {
+      "get": {
+        "summary": "Release Status",
+        "operationId": "release_status_api_v1_release_attempts__attempt_id__get",
+        "parameters": [
+          {
+            "name": "attempt_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Attempt Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReleaseAttemptView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/release-attempts/{attempt_id}/cancel": {
+      "post": {
+        "summary": "Cancel Release",
+        "operationId": "cancel_release_api_v1_release_attempts__attempt_id__cancel_post",
+        "parameters": [
+          {
+            "name": "attempt_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Attempt Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReleaseAttemptView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/releases/{receipt_id}": {
+      "get": {
+        "summary": "Released Receipt",
+        "operationId": "released_receipt_api_v1_releases__receipt_id__get",
+        "parameters": [
+          {
+            "name": "receipt_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Receipt Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReceiptView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/releases/{receipt_id}/exports/{format}": {
+      "get": {
+        "summary": "Export Receipt",
+        "operationId": "export_receipt_api_v1_releases__receipt_id__exports__format__get",
+        "parameters": [
+          {
+            "name": "receipt_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Receipt Id"
+            }
+          },
+          {
+            "name": "format",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Format"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/jobs/{job_id}": {
       "get": {
         "summary": "Job Status",
@@ -868,6 +1388,96 @@
   },
   "components": {
     "schemas": {
+      "ApprovalInput": {
+        "properties": {
+          "request_version": {
+            "type": "integer",
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Request Version"
+          },
+          "selection_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Selection Id"
+          },
+          "comparison_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Comparison Hash"
+          },
+          "scope_seen": {
+            "type": "boolean",
+            "title": "Scope Seen"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request_version",
+          "selection_id",
+          "comparison_hash",
+          "scope_seen"
+        ],
+        "title": "ApprovalInput"
+      },
+      "ApprovalView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "packet_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Packet Hash"
+          },
+          "selection_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Selection Id"
+          },
+          "requester": {
+            "$ref": "#/components/schemas/UserView"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "expires_at": {
+            "type": "string",
+            "title": "Expires At"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "active",
+              "expired",
+              "revoked",
+              "invalidated"
+            ],
+            "title": "State"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "packet_hash",
+          "selection_id",
+          "requester",
+          "created_at",
+          "expires_at",
+          "state",
+          "scope"
+        ],
+        "title": "ApprovalView"
+      },
       "BasketResult": {
         "properties": {
           "source_id": {
@@ -1014,6 +1624,16 @@
                 "type": "null"
               }
             ]
+          },
+          "correspondence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Correspondence"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -1091,6 +1711,256 @@
           "height"
         ],
         "title": "CapturedPageView"
+      },
+      "CompareInput": {
+        "properties": {
+          "request_version": {
+            "type": "integer",
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Request Version"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request_version"
+        ],
+        "title": "CompareInput"
+      },
+      "ComparedSource": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Source Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "capture_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Capture Id"
+          },
+          "extraction_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Extraction Id"
+          },
+          "capture_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Capture Hash"
+          },
+          "content_fingerprint": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Fingerprint"
+          },
+          "proposal_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Proposal Hash"
+          },
+          "review_version": {
+            "type": "integer",
+            "title": "Review Version"
+          },
+          "review_set_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Review Set Hash"
+          },
+          "correspondence_hash": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correspondence Hash"
+          },
+          "reviewed_fields": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Reviewed Fields"
+          },
+          "profile_id": {
+            "type": "string",
+            "title": "Profile Id"
+          },
+          "profile_version": {
+            "type": "integer",
+            "title": "Profile Version"
+          },
+          "basket": {
+            "$ref": "#/components/schemas/BasketResult"
+          },
+          "blockers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Blockers"
+          },
+          "selectable": {
+            "type": "boolean",
+            "title": "Selectable"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_id",
+          "label",
+          "capture_id",
+          "extraction_id",
+          "capture_hash",
+          "content_fingerprint",
+          "proposal_hash",
+          "review_version",
+          "review_set_hash",
+          "correspondence_hash",
+          "reviewed_fields",
+          "profile_id",
+          "profile_version",
+          "basket",
+          "blockers",
+          "selectable"
+        ],
+        "title": "ComparedSource"
+      },
+      "ComparisonView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "request_version": {
+            "type": "integer",
+            "title": "Request Version"
+          },
+          "packet_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Packet Hash"
+          },
+          "evaluated_at": {
+            "type": "string",
+            "title": "Evaluated At"
+          },
+          "current": {
+            "type": "boolean",
+            "title": "Current"
+          },
+          "blockers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Blockers"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/ComparedSource"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "request_version",
+          "packet_hash",
+          "evaluated_at",
+          "current",
+          "blockers",
+          "sources"
+        ],
+        "title": "ComparisonView"
+      },
+      "Correspondence": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Source Id"
+          },
+          "capture_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Capture Hash"
+          },
+          "raster_hashes": {
+            "items": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 1,
+            "title": "Raster Hashes"
+          },
+          "model_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Model Id"
+          },
+          "version": {
+            "type": "string",
+            "const": "raster-correspondence-v1",
+            "title": "Version",
+            "default": "raster-correspondence-v1"
+          },
+          "observations": {
+            "items": {
+              "$ref": "#/components/schemas/Observation"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Observations"
+          },
+          "result_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Result Hash"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_id",
+          "capture_hash",
+          "raster_hashes",
+          "model_id",
+          "observations",
+          "result_hash"
+        ],
+        "title": "Correspondence"
       },
       "Decision": {
         "properties": {
@@ -1188,6 +2058,140 @@
         ],
         "title": "Decision"
       },
+      "DecisionView": {
+        "properties": {
+          "comparison": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComparisonView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "selection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SelectionView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approval": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ApprovalView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "comparison",
+          "selection",
+          "approval"
+        ],
+        "title": "DecisionView"
+      },
+      "Envelope_ApprovalView_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ApprovalView"
+          },
+          "resource_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[ApprovalView]"
+      },
+      "Envelope_CaptureView_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CaptureView"
+          },
+          "resource_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[CaptureView]"
+      },
+      "Envelope_ComparisonView_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ComparisonView"
+          },
+          "resource_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[ComparisonView]"
+      },
+      "Envelope_DecisionView_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DecisionView"
+          },
+          "resource_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[DecisionView]"
+      },
       "Envelope_JobView_": {
         "properties": {
           "data": {
@@ -1210,6 +2214,52 @@
           "data"
         ],
         "title": "Envelope[JobView]"
+      },
+      "Envelope_ReceiptView_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ReceiptView"
+          },
+          "resource_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[ReceiptView]"
+      },
+      "Envelope_ReleaseAttemptView_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ReleaseAttemptView"
+          },
+          "resource_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[ReleaseAttemptView]"
       },
       "Envelope_RequestPage_": {
         "properties": {
@@ -1302,6 +2352,29 @@
           "data"
         ],
         "title": "Envelope[ReviewView]"
+      },
+      "Envelope_SelectionView_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SelectionView"
+          },
+          "resource_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[SelectionView]"
       },
       "Envelope_SessionView_": {
         "properties": {
@@ -1402,6 +2475,33 @@
           "data"
         ],
         "title": "Envelope[list[ProfileView]]"
+      },
+      "Envelope_list_ReleaseAttemptView__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ReleaseAttemptView"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "resource_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[list[ReleaseAttemptView]]"
       },
       "Envelope_list_int__": {
         "properties": {
@@ -1735,6 +2835,82 @@
         ],
         "title": "LoginInput"
       },
+      "Observation": {
+        "properties": {
+          "page_index": {
+            "type": "integer",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Page Index"
+          },
+          "item_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Key"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "agrees",
+              "disagrees",
+              "abstains"
+            ],
+            "title": "Status"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "visible_match",
+              "visible_conflict",
+              "not_visible",
+              "uncertain"
+            ],
+            "title": "Reason"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Quote"
+            },
+            "type": "array",
+            "maxItems": 2,
+            "title": "Evidence"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer",
+                  "maximum": 16000.0,
+                  "minimum": 0.0
+                },
+                "type": "array",
+                "maxItems": 4,
+                "minItems": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "page_index",
+          "item_key",
+          "status",
+          "reason",
+          "evidence"
+        ],
+        "title": "Observation"
+      },
       "PasswordInput": {
         "properties": {
           "password": {
@@ -1810,6 +2986,170 @@
           "quote"
         ],
         "title": "Quote"
+      },
+      "ReceiptView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Request Id"
+          },
+          "request_version": {
+            "type": "integer",
+            "title": "Request Version"
+          },
+          "committed_at": {
+            "type": "string",
+            "title": "Committed At"
+          },
+          "record_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Record Hash"
+          },
+          "record": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Record"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "request_id",
+          "request_version",
+          "committed_at",
+          "record_hash",
+          "record"
+        ],
+        "title": "ReceiptView"
+      },
+      "ReleaseAttemptView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Request Id"
+          },
+          "request_version": {
+            "type": "integer",
+            "title": "Request Version"
+          },
+          "approval_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Approval Id"
+          },
+          "job_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Job Id"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "changed",
+              "blocked",
+              "released"
+            ],
+            "title": "State"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "differences": {
+            "items": {
+              "$ref": "#/components/schemas/SourceDiff"
+            },
+            "type": "array",
+            "title": "Differences"
+          },
+          "receipt_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receipt Id"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "request_id",
+          "request_version",
+          "approval_id",
+          "job_id",
+          "state",
+          "reason",
+          "differences",
+          "receipt_id",
+          "created_at"
+        ],
+        "title": "ReleaseAttemptView"
+      },
+      "ReleaseInput": {
+        "properties": {
+          "request_version": {
+            "type": "integer",
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Request Version"
+          },
+          "approval_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Approval Id"
+          },
+          "approval_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Approval Hash"
+          },
+          "scope_seen": {
+            "type": "boolean",
+            "title": "Scope Seen"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request_version",
+          "approval_id",
+          "approval_hash",
+          "scope_seen"
+        ],
+        "title": "ReleaseInput"
       },
       "RequestInput": {
         "properties": {
@@ -2252,6 +3592,89 @@
         ],
         "title": "ReviewView"
       },
+      "SelectionInput": {
+        "properties": {
+          "request_version": {
+            "type": "integer",
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Request Version"
+          },
+          "comparison_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Comparison Id"
+          },
+          "comparison_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Comparison Hash"
+          },
+          "source_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Source Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request_version",
+          "comparison_id",
+          "comparison_hash",
+          "source_id",
+          "expected_revision"
+        ],
+        "title": "SelectionInput"
+      },
+      "SelectionView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "source_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Source Id"
+          },
+          "comparison_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Comparison Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "current": {
+            "type": "boolean",
+            "title": "Current"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "source_id",
+          "comparison_id",
+          "revision",
+          "current",
+          "created_at"
+        ],
+        "title": "SelectionView"
+      },
       "SessionView": {
         "properties": {
           "user": {
@@ -2279,6 +3702,63 @@
           "reauth_fresh"
         ],
         "title": "SessionView"
+      },
+      "SourceDiff": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Source Id"
+          },
+          "old_capture_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Old Capture Id"
+          },
+          "new_capture_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "New Capture Id"
+          },
+          "text_changed": {
+            "type": "boolean",
+            "title": "Text Changed"
+          },
+          "raster_changed": {
+            "type": "boolean",
+            "title": "Raster Changed"
+          },
+          "old_fingerprint": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Old Fingerprint"
+          },
+          "new_fingerprint": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "New Fingerprint"
+          },
+          "text_diff": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Text Diff"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_id",
+          "old_capture_id",
+          "new_capture_id",
+          "text_changed",
+          "raster_changed",
+          "old_fingerprint",
+          "new_fingerprint",
+          "text_diff"
+        ],
+        "title": "SourceDiff"
       },
       "SourceReviewView": {
         "properties": {

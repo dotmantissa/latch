@@ -11,13 +11,17 @@ appearance. Its request rail and wide worksheet keep the details easy to return 
 
 Vultr inference and the private Ubuntu worker are connected. Live text, tools, image input,
 browser isolation and restricted networking have passed their infrastructure checks.
-Private durable capture, grounded extraction and sanitized evidence storage are implemented.
-The runner now saves grounded proposals before completing an inspection attempt.
-An actual public supplier research check verified protected PNG delivery and unresolved terms.
-The source review interface shows stored evidence and records individual requester decisions.
-Supplier inspection, approval and source recheck remain unavailable while actual supplier
-compatibility and the full comparison workflow are completed.
-A future release will create an internal purchase record without placing a supplier order.
+Private durable capture, grounded extraction, image correspondence and sanitized evidence
+storage are implemented. Individual source review feeds comparisons calculated by the server and
+selection among feasible offers. Approval binds one saved version; release rechecks every source
+and creates an immutable internal record only after the database commit guards pass.
+Authorized JSON/PDF/ZIP exports and encrypted isolated backup/restore are implemented.
+
+An actual public supplier runner check passed through capture, extraction, image abstention
+and Neon publication. Its competing prices and missing purchase terms remain unresolved;
+blocked product images cannot become visual approval. The source is not selectable.
+Public supplier inspection stays gated pending actual buyer/source qualification. No complete
+buyer task, observed human approval, release against qualified supplier sources or public deployment is claimed.
 
 Start with [local setup](docs/LOCAL.md). The connection is kept in an ignored private file.
 Create your account through the terminal command, then run bash scripts/dev.sh to open
@@ -35,6 +39,9 @@ https://localhost:8443. No supplier pages or requests are seeded.
 | [Durable worker](docs/SUPERVISOR.md) | Private supervision, job recovery and progress replay |
 | [Captured evidence](docs/EVIDENCE.md) | Isolated PNG sanitization, immutable attribution and authorized delivery |
 | [Review commands](docs/REVIEWS.md) | Individual checks, source corrections, disputes and preserved history |
+| [Image correspondence](docs/CORRESPONDENCE.md) | Attributed model observations and enforced abstention |
+| [Decision workflow](docs/WORKFLOW.md) | Comparisons, approval, fresh recheck, atomic internal receipt and exports |
+| [Encrypted recovery](docs/RECOVERY.md) | Consistent backups, isolated restore and truthful retention limits |
 | [Worker evidence](docs/evidence/WORKER_STATUS.json) | Actual browser isolation, network denial and Vultr capability observations |
 | [Acceptance plan](docs/ACCEPTANCE.md) | Future real supplier journeys and buyer evaluation |
 | [Brand assets](assets/brand/README.md) | Logo masters, fonts and browser icons |
@@ -43,7 +50,7 @@ https://localhost:8443. No supplier pages or requests are seeded.
 The automated checks cover deterministic arithmetic, real HTTP identity, owner isolation,
 Neon migrations, durable jobs, saved revision recovery and stored progress. Actual worker
 interruption and runner recovery checks use technical documentation. Supplier accuracy,
-purchase release and buyer value still need their own evidence.
+release against qualified supplier sources and buyer value still need their own evidence.
 
 Earlier research remains in [the archive](research/README.md). Its synthetic examples are
 historical planning material. The local recovery checklist stays private and ignored.

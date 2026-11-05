@@ -1,0 +1,26 @@
+{
+  "at": "2026-11-05T17:29:03.174340+00:00",
+  "status": "passed",
+  "scope": "actual public supplier capture, Vultr correspondence and fenced Neon publication; no buyer acceptance",
+  "source": "https://store.ui.com/us/en/products/u6-plus",
+  "model": "qwen3.8-flash-next",
+  "actual_capture_and_cleanup": true,
+  "durable_raster_correspondence": true,
+  "indexed_exact_quotes_and_capture_raster_page_item_hashes": true,
+  "product_image_review_profile_default": false,
+  "operator_capability_overrides_model_item_conclusions": true,
+  "item_correspondence": "abstains",
+  "product_photographs": "blocked by existing asset policy",
+  "price_state": "ambiguous",
+  "price_cents": null,
+  "actual_fresh_runner_total_vultr_calls": 2,
+  "earlier_adverse_observations": [
+    "Provider diagnostic invented quotes; indexed exact captured quote options now reject invented spans",
+    "Provider treated a title as visual item proof; server-authored product-capability abstention prevents acceptance"
+  ],
+  "public_inspection": "gated",
+  "observed_human_review": false,
+  "application_buyer_data_created": false,
+  "qualified_supplier_and_buyer_acceptance": "pending",
+  "runner_evidence": "RUNNER_EXTRACTION_STATUS.json"
+}
