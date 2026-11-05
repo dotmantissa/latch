@@ -30,4 +30,5 @@ class CaptureView(StrictRecord):
     profile_version: int
     review_state: Literal["unreviewed"] = "unreviewed"
     pages: list[CapturedPageView]
+    extraction_id: UUID | None
     extraction: Extraction | None

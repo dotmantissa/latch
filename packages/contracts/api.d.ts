@@ -227,6 +227,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/extractions/{extraction_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Source Review */
+        get: operations["source_review_api_v1_extractions__extraction_id__review_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/extractions/{extraction_id}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Review History */
+        get: operations["review_history_api_v1_extractions__extraction_id__reviews_get"];
+        put?: never;
+        /** Review Field */
+        post: operations["review_field_api_v1_extractions__extraction_id__reviews_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/requests/{request_id}/inspections": {
         parameters: {
             query?: never;
@@ -299,6 +334,32 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** BasketResult */
+        BasketResult: {
+            /** Source Id */
+            source_id: string;
+            /** Quoted Subtotal Cents */
+            quoted_subtotal_cents: number;
+            /** Complete Total Cents */
+            complete_total_cents: number | null;
+            /** Complete */
+            complete: boolean;
+            /** Reviewed */
+            reviewed: boolean;
+            /** Feasible */
+            feasible: boolean;
+            /** Reasons */
+            reasons: string[];
+            /** Lines */
+            lines: {
+                [key: string]: string | number | null;
+            }[];
+            /**
+             * Policy Version
+             * @default basket-v1
+             */
+            policy_version: string;
+        };
         /** CaptureView */
         CaptureView: {
             /**
@@ -329,6 +390,8 @@ export interface components {
             review_state: "unreviewed";
             /** Pages */
             pages: components["schemas"]["CapturedPageView"][];
+            /** Extraction Id */
+            extraction_id: string | null;
             extraction: components["schemas"]["Extraction"] | null;
         };
         /** CapturedPageView */
@@ -357,6 +420,29 @@ export interface components {
             /** Height */
             height: number;
         };
+        /** Decision */
+        Decision: {
+            /** Item Key */
+            item_key: string | null;
+            /** Kind */
+            kind: ("coverage" | "exact_match" | "sell_unit_size" | "min_sell_units" | "price_cents" | "available_units") | ("shipping_cents" | "tax_included" | "latest_arrival" | "conditions_satisfied");
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "confirm" | "correct" | "dispute";
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "buyer_checked" | "disputed";
+            /** Value */
+            value: unknown | null;
+            /** Reason */
+            reason: string | null;
+            /** Spans */
+            spans: components["schemas"]["Span"][];
+        };
         /** Envelope[JobView] */
         Envelope_JobView_: {
             data: components["schemas"]["JobView"];
@@ -375,9 +461,27 @@ export interface components {
             /** Resource Version */
             resource_version?: number | null;
         };
+        /** Envelope[ReviewPage] */
+        Envelope_ReviewPage_: {
+            data: components["schemas"]["ReviewPage"];
+            /** Resource Version */
+            resource_version?: number | null;
+        };
+        /** Envelope[ReviewView] */
+        Envelope_ReviewView_: {
+            data: components["schemas"]["ReviewView"];
+            /** Resource Version */
+            resource_version?: number | null;
+        };
         /** Envelope[SessionView] */
         Envelope_SessionView_: {
             data: components["schemas"]["SessionView"];
+            /** Resource Version */
+            resource_version?: number | null;
+        };
+        /** Envelope[SourceReviewView] */
+        Envelope_SourceReviewView_: {
+            data: components["schemas"]["SourceReviewView"];
             /** Resource Version */
             resource_version?: number | null;
         };
@@ -429,6 +533,18 @@ export interface components {
             fields: components["schemas"]["GroundedField"][];
             /** Proposal Hash */
             proposal_hash: string;
+        };
+        /** FieldView */
+        FieldView: {
+            original: components["schemas"]["GroundedField"];
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "extracted" | "unknown" | "disputed" | "buyer_checked";
+            /** Value */
+            value: unknown | null;
+            latest_review: components["schemas"]["ReviewView"] | null;
         };
         /** GroundedField */
         GroundedField: {
@@ -499,6 +615,13 @@ export interface components {
             offer_paths: string[];
             /** Expires At */
             expires_at: string;
+        };
+        /** Quote */
+        Quote: {
+            /** Page Index */
+            page_index: number;
+            /** Quote */
+            quote: string;
         };
         /** RequestInput */
         RequestInput: {
@@ -595,6 +718,53 @@ export interface components {
             content_hash: string;
             worksheet: components["schemas"]["RequestInput"];
         };
+        /** ReviewInput */
+        ReviewInput: {
+            /** Request Version */
+            request_version: number;
+            /** Expected Review Version */
+            expected_review_version: number;
+            /** Proposal Hash */
+            proposal_hash: string;
+            /** Item Key */
+            item_key: string | null;
+            /** Kind */
+            kind: ("coverage" | "exact_match" | "sell_unit_size" | "min_sell_units" | "price_cents" | "available_units") | ("shipping_cents" | "tax_included" | "latest_arrival" | "conditions_satisfied");
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "confirm" | "correct" | "dispute";
+            /** Corrected Value */
+            corrected_value: unknown | null;
+            /** Evidence */
+            evidence: components["schemas"]["Quote"][];
+            /** Reason */
+            reason: string | null;
+            /** Evidence Seen */
+            evidence_seen: boolean;
+        };
+        /** ReviewPage */
+        ReviewPage: {
+            /** Items */
+            items: components["schemas"]["ReviewView"][];
+            /** Next Before */
+            next_before: number | null;
+        };
+        /** ReviewView */
+        ReviewView: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Version */
+            version: number;
+            reviewer: components["schemas"]["UserView"];
+            /** Created At */
+            created_at: string;
+            decision: components["schemas"]["Decision"];
+        };
         /** SessionView */
         SessionView: {
             user: components["schemas"]["UserView"];
@@ -604,6 +774,39 @@ export interface components {
             expires_at: string;
             /** Reauth Fresh */
             reauth_fresh: boolean;
+        };
+        /** SourceReviewView */
+        SourceReviewView: {
+            /**
+             * Extraction Id
+             * Format: uuid
+             */
+            extraction_id: string;
+            /**
+             * Capture Id
+             * Format: uuid
+             */
+            capture_id: string;
+            /**
+             * Request Id
+             * Format: uuid
+             */
+            request_id: string;
+            /** Request Version */
+            request_version: number;
+            /** Current */
+            current: boolean;
+            /** Review Version */
+            review_version: number;
+            /** Review Set Hash */
+            review_set_hash: string;
+            /** Checked Fields */
+            checked_fields: number;
+            /** Total Fields */
+            total_fields: number;
+            /** Fields */
+            fields: components["schemas"]["FieldView"][];
+            basket: components["schemas"]["BasketResult"] | null;
         };
         /** Span */
         Span: {
@@ -1068,6 +1271,106 @@ export interface operations {
                 };
                 content: {
                     "image/png": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    source_review_api_v1_extractions__extraction_id__review_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                extraction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_SourceReviewView_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_history_api_v1_extractions__extraction_id__reviews_get: {
+        parameters: {
+            query?: {
+                before?: number | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                extraction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReviewPage_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_field_api_v1_extractions__extraction_id__reviews_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                extraction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReviewView_"];
                 };
             };
             /** @description Validation Error */

@@ -50,7 +50,10 @@ Bounded public source-text proposals and exact-span grounding are implemented an
 verified against an actual public supplier capture; see [extraction scope](EXTRACTION.md).
 Immutable captures/proposals, isolated PNG sanitization, deterministic fingerprints and
 ownership-checked artifact routes are implemented; see [evidence boundary](EVIDENCE.md).
-Supplier image correspondence and human review remain pending. The runner persists
+Individual owner-attributed confirm/correct/dispute records, revision preconditions,
+history and derived basket checks are implemented; see [review API](REVIEWS.md).
+Supplier image correspondence, the workbench and observed human review remain pending.
+The runner persists
 sanitized captures; connecting inference to its full comparison workflow is still pending.
 
 Implement typed public-only model context, bounded page/region/terms tools, structured extraction, source span checks and vision correspondence call. Record prompts/model/schema versions and actual usage privately. Schema repairs stay bounded; no model authority modules available. Inconsistent/missing terms stay unknown/disputed.

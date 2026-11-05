@@ -35,6 +35,7 @@ To repeat that explicitly scoped research while its worker profile is active:
 
 The command uses the established private supervisor tunnel and owned ignored inference
 credential. It creates no application buyer data. Source-text extraction and
-[sanitized evidence storage and delivery](EVIDENCE.md) are implemented. Durable reviewed
-fields, supplier vision correspondence and the review workbench remain pending.
+[sanitized evidence storage and delivery](EVIDENCE.md) are implemented, alongside
+[individual review records](REVIEWS.md). Supplier vision correspondence, the review
+workbench and observed human acceptance remain pending.
 Public inspection remains gated.

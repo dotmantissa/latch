@@ -48,9 +48,11 @@ from services.domain.contracts import (
     SessionView,
     utc_string,
 )
-from services.storage import evidence, jobs
+from services.domain.reviews import ReviewInput
+from services.storage import evidence, jobs, reviews
 from services.storage import requests as store
 from services.storage.database import database
+from services.storage.reviews import ReviewPage, ReviewView, SourceReviewView
 
 
 class Envelope[T](BaseModel):
@@ -410,6 +412,38 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
             "Content-Disposition": f'inline; filename="{artifact_id}.png"',
             "Cross-Origin-Resource-Policy": "same-origin",
         })
+
+    @app.get(
+        "/api/v1/extractions/{extraction_id}/review", response_model=Envelope[SourceReviewView],
+    )
+    def source_review(extraction_id: UUID, request: Request, response: Response):
+        with authorized(request) as (conn, row):
+            result = reviews.view(conn, row["user_id"], extraction_id)
+        response.headers["ETag"] = f'"{result.review_version}"'
+        return Envelope(data=result, resource_version=result.review_version)
+
+    @app.get("/api/v1/extractions/{extraction_id}/reviews", response_model=Envelope[ReviewPage])
+    def review_history(
+        extraction_id: UUID, request: Request,
+        before: int | None = Query(None, ge=1, le=10001), limit: int = Query(25, ge=1, le=50),
+    ):
+        with authorized(request) as (conn, row):
+            return Envelope(data=reviews.history(
+                conn, row["user_id"], extraction_id, before, limit,
+            ))
+
+    @app.post("/api/v1/extractions/{extraction_id}/reviews", status_code=201,
+              response_model=Envelope[ReviewView])
+    def review_field(extraction_id: UUID, body: ReviewInput, request: Request, response: Response):
+        tag = request.headers.get("if-match", "")
+        if not re.fullmatch(r'"(?:0|[1-9][0-9]{0,3})"', tag):
+            raise ApiError(428, "VERSION_PRECONDITION_REQUIRED", "error.conflict")
+        if int(tag[1:-1]) != body.expected_review_version:
+            raise ApiError(412, "VERSION_PRECONDITION", "error.conflict")
+        with authorized(request) as (conn, row):
+            result = reviews.save(conn, row["user_id"], extraction_id, body, key(request))
+        response.headers["ETag"] = f'"{result.version}"'
+        return Envelope(data=result, resource_version=result.version)
 
     @app.post("/api/v1/requests/{request_id}/inspections")
     def inspect(request_id: UUID, body: VersionInput, request: Request):

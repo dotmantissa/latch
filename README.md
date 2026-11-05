@@ -32,6 +32,7 @@ https://localhost:8443. No supplier pages or requests are seeded.
 | [Runtime probes](docs/P0.md) | Source admission and live capability checks |
 | [Durable worker](docs/SUPERVISOR.md) | Private supervision, job recovery and progress replay |
 | [Captured evidence](docs/EVIDENCE.md) | Isolated PNG sanitization, immutable attribution and authorized delivery |
+| [Review commands](docs/REVIEWS.md) | Individual checks, source corrections, disputes and preserved history |
 | [Worker evidence](docs/evidence/WORKER_STATUS.json) | Actual browser isolation, network denial and Vultr capability observations |
 | [Acceptance plan](docs/ACCEPTANCE.md) | Future real supplier journeys and buyer evaluation |
 | [Brand assets](assets/brand/README.md) | Logo masters, fonts and browser icons |

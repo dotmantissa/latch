@@ -51,8 +51,9 @@ Authenticated routes:
   IDs return 404; missing/corrupted files return a safe unavailable error.
 
 Captures from running, failed or abandoned job fences cannot publish files. These
-routes provide evidence infrastructure; public supplier inspection remains gated and
-the product review workbench is pending. Successful capture means collected evidence,
+routes provide evidence infrastructure; [individual review commands](REVIEWS.md) are
+implemented, while public supplier inspection remains gated and the product review
+workbench is pending. Successful capture means collected evidence,
 not complete purchasing terms, buyer review, approval or release.
 
 The actual source-only check creates an isolated Neon schema, captures the real public

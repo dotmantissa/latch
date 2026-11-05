@@ -1,0 +1,28 @@
+{
+  "observed_date": "2026-11-05",
+  "scope": "automated_review_protocol_on_actual_supplier_capture_in_isolated_schema",
+  "source": "https://store.ui.com/us/en/products/u6-plus",
+  "actual_worker_capture_and_cleanup": true,
+  "actual_vultr_extraction_calls": 2,
+  "neon_and_authenticated_http": true,
+  "protocol": {
+    "automated": true,
+    "observed_human_review": false,
+    "csrf_unknown_confirm_idempotency_stale_and_request_checks": true,
+    "source_price_correction_and_dispute": true,
+    "concurrent_compare_and_swap": true,
+    "append_only_review_rows": true,
+    "original_proposal_and_paginated_history_preserved": true
+  },
+  "other_owner_denied": true,
+  "final_price_state": "disputed",
+  "original_price_state": "ambiguous",
+  "final_checked_fields": 0,
+  "application_buyer_data_created": false,
+  "local_tests_passed": 151,
+  "application_schema_version": 4,
+  "observed_human_review": false,
+  "source_workbench": "pending",
+  "buyer_acceptance_and_release": "pending",
+  "public_inspection": "gated"
+}

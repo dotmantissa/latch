@@ -543,6 +543,164 @@
         }
       }
     },
+    "/api/v1/extractions/{extraction_id}/review": {
+      "get": {
+        "summary": "Source Review",
+        "operationId": "source_review_api_v1_extractions__extraction_id__review_get",
+        "parameters": [
+          {
+            "name": "extraction_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Extraction Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SourceReviewView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extractions/{extraction_id}/reviews": {
+      "get": {
+        "summary": "Review History",
+        "operationId": "review_history_api_v1_extractions__extraction_id__reviews_get",
+        "parameters": [
+          {
+            "name": "extraction_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Extraction Id"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 10001,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Before"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 25,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReviewPage_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Review Field",
+        "operationId": "review_field_api_v1_extractions__extraction_id__reviews_post",
+        "parameters": [
+          {
+            "name": "extraction_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Extraction Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReviewView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/requests/{request_id}/inspections": {
       "post": {
         "summary": "Inspect",
@@ -710,6 +868,86 @@
   },
   "components": {
     "schemas": {
+      "BasketResult": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "title": "Source Id"
+          },
+          "quoted_subtotal_cents": {
+            "type": "integer",
+            "title": "Quoted Subtotal Cents"
+          },
+          "complete_total_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Complete Total Cents"
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete"
+          },
+          "reviewed": {
+            "type": "boolean",
+            "title": "Reviewed"
+          },
+          "feasible": {
+            "type": "boolean",
+            "title": "Feasible"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          },
+          "lines": {
+            "items": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Lines"
+          },
+          "policy_version": {
+            "type": "string",
+            "title": "Policy Version",
+            "default": "basket-v1"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_id",
+          "quoted_subtotal_cents",
+          "complete_total_cents",
+          "complete",
+          "reviewed",
+          "feasible",
+          "reasons",
+          "lines"
+        ],
+        "title": "BasketResult"
+      },
       "CaptureView": {
         "properties": {
           "id": {
@@ -755,6 +993,18 @@
             "type": "array",
             "title": "Pages"
           },
+          "extraction_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Id"
+          },
           "extraction": {
             "anyOf": [
               {
@@ -777,6 +1027,7 @@
           "profile_id",
           "profile_version",
           "pages",
+          "extraction_id",
           "extraction"
         ],
         "title": "CaptureView"
@@ -840,6 +1091,102 @@
           "height"
         ],
         "title": "CapturedPageView"
+      },
+      "Decision": {
+        "properties": {
+          "item_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Key"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "coverage",
+                  "exact_match",
+                  "sell_unit_size",
+                  "min_sell_units",
+                  "price_cents",
+                  "available_units"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "shipping_cents",
+                  "tax_included",
+                  "latest_arrival",
+                  "conditions_satisfied"
+                ]
+              }
+            ],
+            "title": "Kind"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "confirm",
+              "correct",
+              "dispute"
+            ],
+            "title": "Action"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "buyer_checked",
+              "disputed"
+            ],
+            "title": "State"
+          },
+          "value": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "spans": {
+            "items": {
+              "$ref": "#/components/schemas/Span"
+            },
+            "type": "array",
+            "title": "Spans"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "item_key",
+          "kind",
+          "action",
+          "state",
+          "value",
+          "reason",
+          "spans"
+        ],
+        "title": "Decision"
       },
       "Envelope_JobView_": {
         "properties": {
@@ -910,6 +1257,52 @@
         ],
         "title": "Envelope[RequestView]"
       },
+      "Envelope_ReviewPage_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ReviewPage"
+          },
+          "resource_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[ReviewPage]"
+      },
+      "Envelope_ReviewView_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ReviewView"
+          },
+          "resource_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[ReviewView]"
+      },
       "Envelope_SessionView_": {
         "properties": {
           "data": {
@@ -932,6 +1325,29 @@
           "data"
         ],
         "title": "Envelope[SessionView]"
+      },
+      "Envelope_SourceReviewView_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SourceReviewView"
+          },
+          "resource_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[SourceReviewView]"
       },
       "Envelope_list_CaptureView__": {
         "properties": {
@@ -1069,6 +1485,51 @@
           "proposal_hash"
         ],
         "title": "Extraction"
+      },
+      "FieldView": {
+        "properties": {
+          "original": {
+            "$ref": "#/components/schemas/GroundedField"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "extracted",
+              "unknown",
+              "disputed",
+              "buyer_checked"
+            ],
+            "title": "State"
+          },
+          "value": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "latest_review": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReviewView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "original",
+          "state",
+          "value",
+          "latest_review"
+        ],
+        "title": "FieldView"
       },
       "GroundedField": {
         "properties": {
@@ -1326,6 +1787,29 @@
           "expires_at"
         ],
         "title": "ProfileView"
+      },
+      "Quote": {
+        "properties": {
+          "page_index": {
+            "type": "integer",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Page Index"
+          },
+          "quote": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Quote"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "page_index",
+          "quote"
+        ],
+        "title": "Quote"
       },
       "RequestInput": {
         "properties": {
@@ -1593,6 +2077,181 @@
         ],
         "title": "RequestView"
       },
+      "ReviewInput": {
+        "properties": {
+          "request_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Request Version"
+          },
+          "expected_review_version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Review Version"
+          },
+          "proposal_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Proposal Hash"
+          },
+          "item_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_]{1,64}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Key"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "coverage",
+                  "exact_match",
+                  "sell_unit_size",
+                  "min_sell_units",
+                  "price_cents",
+                  "available_units"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "shipping_cents",
+                  "tax_included",
+                  "latest_arrival",
+                  "conditions_satisfied"
+                ]
+              }
+            ],
+            "title": "Kind"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "confirm",
+              "correct",
+              "dispute"
+            ],
+            "title": "Action"
+          },
+          "corrected_value": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corrected Value"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Quote"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Evidence"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "evidence_seen": {
+            "type": "boolean",
+            "title": "Evidence Seen"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request_version",
+          "expected_review_version",
+          "proposal_hash",
+          "item_key",
+          "kind",
+          "action",
+          "corrected_value",
+          "evidence",
+          "reason",
+          "evidence_seen"
+        ],
+        "title": "ReviewInput"
+      },
+      "ReviewPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewView"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_before": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Before"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "next_before"
+        ],
+        "title": "ReviewPage"
+      },
+      "ReviewView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "reviewer": {
+            "$ref": "#/components/schemas/UserView"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "decision": {
+            "$ref": "#/components/schemas/Decision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "version",
+          "reviewer",
+          "created_at",
+          "decision"
+        ],
+        "title": "ReviewView"
+      },
       "SessionView": {
         "properties": {
           "user": {
@@ -1620,6 +2279,82 @@
           "reauth_fresh"
         ],
         "title": "SessionView"
+      },
+      "SourceReviewView": {
+        "properties": {
+          "extraction_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Extraction Id"
+          },
+          "capture_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Capture Id"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Request Id"
+          },
+          "request_version": {
+            "type": "integer",
+            "title": "Request Version"
+          },
+          "current": {
+            "type": "boolean",
+            "title": "Current"
+          },
+          "review_version": {
+            "type": "integer",
+            "title": "Review Version"
+          },
+          "review_set_hash": {
+            "type": "string",
+            "title": "Review Set Hash"
+          },
+          "checked_fields": {
+            "type": "integer",
+            "title": "Checked Fields"
+          },
+          "total_fields": {
+            "type": "integer",
+            "title": "Total Fields"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/FieldView"
+            },
+            "type": "array",
+            "title": "Fields"
+          },
+          "basket": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BasketResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "extraction_id",
+          "capture_id",
+          "request_id",
+          "request_version",
+          "current",
+          "review_version",
+          "review_set_hash",
+          "checked_fields",
+          "total_fields",
+          "fields",
+          "basket"
+        ],
+        "title": "SourceReviewView"
       },
       "Span": {
         "properties": {

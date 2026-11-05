@@ -144,7 +144,7 @@ def views(conn, owner_id, request_id, version):
             (capture["id"],),
         ).fetchall()
         proposal = conn.execute(
-            "SELECT proposal_json FROM source_extractions WHERE capture_id=%s", (capture["id"],),
+            "SELECT id,proposal_json FROM source_extractions WHERE capture_id=%s", (capture["id"],),
         ).fetchone()
         results.append(CaptureView(
             id=capture["id"], source_id=capture["source_id"],
@@ -157,6 +157,7 @@ def views(conn, owner_id, request_id, version):
                 started_at=iso_ms(p["started_at"]), completed_at=iso_ms(p["completed_at"]),
                 sanitized_hash=p["sanitized_png_hash"], width=p["width"], height=p["height"],
             ) for p in pages],
+            extraction_id=proposal["id"] if proposal else None,
             extraction=Extraction.model_validate(proposal["proposal_json"]) if proposal else None,
         ))
     return results

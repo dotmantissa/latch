@@ -48,6 +48,13 @@ Price = Annotated[StrictInt, Field(ge=0, le=100_000_000)]
 
 
 class ArrivalEvidence(Evidence[datetime]):
+    @field_validator("value", mode="before")
+    @classmethod
+    def explicit_timestamp_type(cls, value):
+        if value is not None and not isinstance(value, (str, datetime)):
+            raise ValueError("An explicit source timestamp is required")
+        return value
+
     @field_validator("value")
     @classmethod
     def explicit_time(cls, value):
