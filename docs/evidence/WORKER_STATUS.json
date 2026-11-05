@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "at": "2026-11-05T11:17:49.408371+00:00",
+  "scope": "actual_worker_infrastructure_and_vultr_capabilities",
+  "status": "passed",
+  "supplier_acceptance": "pending",
+  "host": {
+    "os": "Ubuntu 26.04.1 LTS",
+    "kernel": "7.0.0-42-generic",
+    "docker": "Docker version 29.9.3, build 5457199",
+    "gvisor": "runsc version release-20261102.0\nspec: 1.2.1",
+    "cgroup_version": "2",
+    "packages": [
+      "docker-ce=5:29.9.3-1~ubuntu.26.04~resolute",
+      "docker-ce-cli=5:29.9.3-1~ubuntu.26.04~resolute",
+      "containerd.io=2.4.2-3~ubuntu.26.04~resolute",
+      "docker-buildx-plugin=0.38.1-1~ubuntu.26.04~resolute",
+      "runsc=20261102.0"
+    ]
+  },
+  "browser_image": "sha256:526ab779acd7aa7c153b3642b91b5db9b084c311e968fb8f1b98d726af59087d",
+  "browser_version": "156.0.8078.4",
+  "runtime": "runsc",
+  "uid": 1000,
+  "limits": {
+    "cpu": 1.5,
+    "memory_bytes": 3221225472,
+    "pids": 256,
+    "tmpfs_bytes": 536870912,
+    "readonly_root": true,
+    "capabilities": [],
+    "capture_watchdog_seconds": 90
+  },
+  "sandbox": {
+    "pid_namespace": true,
+    "network_namespace": true,
+    "seccomp_bpf": true,
+    "tsync": true
+  },
+  "technical_page": "https://gvisor.dev/docs/",
+  "capture_sha256": "d7e56fac59b89439f73c4c0ce2a2a581aa1335b98fa12d22dfad7f01eb15d9b9",
+  "network_observations": {
+    "metadata": "request_failed",
+    "private": "request_failed",
+    "loopback": "request_failed",
+    "ipv6_private": "request_failed",
+    "direct_public_tcp": "connection_failed",
+    "host_ssh": "connection_failed",
+    "host_dns_tcp": "connection_failed",
+    "host_dns_udp": "response_failed"
+  },
+  "boundary_evidence": {
+    "proxy_upstream_http_200": true,
+    "nft_drop_counters": [
+      {
+        "chain": "input",
+        "packets": 5,
+        "bytes": 297
+      },
+      {
+        "chain": "forward",
+        "packets": 0,
+        "bytes": 0
+      },
+      {
+        "chain": "forward",
+        "packets": 0,
+        "bytes": 0
+      },
+      {
+        "chain": "output",
+        "packets": 4,
+        "bytes": 384
+      },
+      {
+        "chain": "output",
+        "packets": 0,
+        "bytes": 0
+      },
+      {
+        "chain": "output",
+        "packets": 0,
+        "bytes": 0
+      },
+      {
+        "chain": "output",
+        "packets": 0,
+        "bytes": 0
+      },
+      {
+        "chain": "output",
+        "packets": 0,
+        "bytes": 0
+      }
+    ],
+    "internal_network": true,
+    "proxy_only_bridge_access": true,
+    "ufw_preserved": true,
+    "proxy_dns": "local_stub_only",
+    "upstream_tls_hostname_verification": true,
+    "browser_trust": "exact_inspection_CA_SPKI_only"
+  },
+  "watchdog": {
+    "seconds": 2,
+    "terminated": true,
+    "cleanup_observed": true
+  },
+  "capture_cleanup_observed": true,
+  "provider": {
+    "text_tools": {
+      "schema_version": 1,
+      "at": "2026-11-05T10:28:39.258155Z",
+      "status": "passed",
+      "scope": "live_vultr_text_tools",
+      "endpoint": "https://api.vultrinference.com/v1",
+      "text": {
+        "model": "qwen3.8-flash-next",
+        "usage": {
+          "prompt_tokens": 50,
+          "completion_tokens": 38,
+          "total_tokens": 88
+        },
+        "elapsed_ms": 4618
+      },
+      "tools": {
+        "model": "qwen3.8-flash-next",
+        "usage": {
+          "prompt_tokens": 315,
+          "completion_tokens": 68,
+          "total_tokens": 383
+        },
+        "elapsed_ms": 1691
+      },
+      "supplier_vision": "pending_actual_source_capture"
+    },
+    "technical_image": {
+      "model": "qwen3.8-flash-next",
+      "usage": {
+        "prompt_tokens": 2630,
+        "completion_tokens": 130,
+        "total_tokens": 2760
+      },
+      "elapsed_ms": 6824,
+      "transcription_review": "first paragraph agrees with visually inspected actual screenshot"
+    }
+  },
+  "limitations": [
+    "Technical documentation capture is infrastructure evidence, not a buyer or supplier task.",
+    "Actual supplier profile/content completeness, quantity/tax/shipping/delivery interpretation and independent buyer acceptance remain pending.",
+    "P4 durable supervisor, job recovery and mTLS service channel are not implemented by the finite P0 probe.",
+    "Public application deployment and submission remain unrequested."
+  ]
+}

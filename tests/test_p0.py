@@ -19,7 +19,7 @@ from services.common.source_policy import (
     require_public_addresses,
 )
 from services.common.sqlite import assert_runtime, connect
-from services.runner.vultr import ProviderFailure
+from services.runner.vultr import ProviderFailure, VultrClient
 
 
 @pytest.mark.parametrize(
@@ -123,6 +123,21 @@ def test_configuration_rejects_other_providers_and_unknown_fields():
         Settings(demo=True)
     with pytest.raises(ValidationError):
         Settings(public_origin="http://localhost:8443")
+
+
+@pytest.mark.parametrize("options", [
+    {"max_tokens": 1025}, {"max_tokens": 0}, {"max_tokens": True},
+    {"max_completion_tokens": 10}, {"model": "arbitrary-model"},
+    {"stream": True},
+])
+def test_provider_authority_and_output_budget_cannot_be_overridden(tmp_path, options):
+    token = tmp_path / "credential"
+    token.write_text("policy_only_not_a_provider_credential")
+    token.chmod(0o600)
+    client = VultrClient(Settings(model_id="policy_assertion", inference_key_file=token))
+    with pytest.raises(ProviderFailure, match="PROVIDER_OPTIONS_INVALID"):
+        client.complete([], **options)
+    assert client.calls == 0
 
 
 def test_secret_file_must_be_private_owned_regular_file(tmp_path):

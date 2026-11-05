@@ -9,8 +9,10 @@ revisions in Neon Postgres, with named accounts, private sessions and a readable
 The interface uses warm limestone, oxblood, the original Latch mark, and light and dark
 appearance. Its request rail and wide worksheet keep the details easy to return to.
 
-Supplier inspection, model extraction, evidence review, approval and source recheck will
-connect to Vultr when access is available. Those actions remain unavailable in this build.
+Vultr inference and the private Ubuntu worker are connected. Live text, tools, image input,
+browser isolation and restricted networking have passed their infrastructure checks.
+Supplier inspection, evidence review, approval and source recheck remain unavailable while
+the durable workflow and actual supplier compatibility are completed.
 A future release will create an internal purchase record without placing a supplier order.
 
 Start with [local setup](docs/LOCAL.md). The connection is kept in an ignored private file.
@@ -25,7 +27,8 @@ https://localhost:8443. No supplier pages or requests are seeded.
 | [Data and API contracts](docs/CONTRACTS.md) | Versioned records, ownership, API and worker contracts |
 | [Design specification](docs/DESIGN.md) | Layout, typography, themes and accessible interactions |
 | [Security and operations](docs/SECURITY.md) | Sessions, isolation, deployment and recovery requirements |
-| [Runtime probes](docs/P0.md) | Deferred source and Vultr capability checks |
+| [Runtime probes](docs/P0.md) | Source admission and live capability checks |
+| [Worker evidence](docs/evidence/WORKER_STATUS.json) | Actual browser isolation, network denial and Vultr capability observations |
 | [Acceptance plan](docs/ACCEPTANCE.md) | Future real supplier journeys and buyer evaluation |
 | [Brand assets](assets/brand/README.md) | Logo masters, fonts and browser icons |
 | [Sources](docs/SOURCES.md) | Official technical references |

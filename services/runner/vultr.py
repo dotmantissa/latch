@@ -22,13 +22,18 @@ class VultrClient:
         self.calls = 0
 
     def complete(self, messages: list[dict], **options: object) -> tuple[dict, dict]:
+        allowed_options = {"max_tokens", "response_format", "tools", "tool_choice",
+                           "reasoning_effort", "temperature"}
+        cap = options.get("max_tokens", 1024)
+        if (set(options) - allowed_options or type(cap) is not int or not 1 <= cap <= 1024):
+            raise ProviderFailure("PROVIDER_OPTIONS_INVALID")
         if self.calls >= 3:
             raise ProviderFailure("CAPABILITY_CALL_LIMIT")
         self.calls += 1
         body = {
             "model": self.model_id,
             "messages": messages,
-            "max_completion_tokens": 1024,
+            "max_tokens": 1024,
             **options,
         }
         started = time.monotonic()

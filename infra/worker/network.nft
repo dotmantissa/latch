@@ -1,0 +1,30 @@
+# Loaded atomically into a dedicated table; unrelated host firewall tables are preserved.
+flush table inet latch_worker
+table inet latch_worker {
+  chain input {
+    type filter hook input priority -20; policy accept;
+    iifname "latch-br0" ip daddr 172.29.240.1 tcp dport 3128 counter accept
+    iifname "latch-br0" counter drop
+  }
+  chain forward {
+    type filter hook forward priority -20; policy accept;
+    iifname "latch-br0" counter drop
+    oifname "latch-br0" counter drop
+  }
+  chain output {
+    type filter hook output priority -20; policy accept;
+    oifname "latch-br0" ip saddr 172.29.240.1 tcp sport 3128 counter accept
+    oifname "latch-br0" counter drop
+    meta skuid @LATCH_PROXY_UID@ ip daddr 127.0.0.53 udp dport 53 counter accept
+    meta skuid @LATCH_PROXY_UID@ ip daddr 127.0.0.53 tcp dport 53 counter accept
+    meta skuid @LATCH_PROXY_UID@ ip daddr {
+      0.0.0.0/8, 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, 169.254.0.0/16,
+      172.16.0.0/12, 192.0.0.0/24, 192.0.2.0/24, 192.168.0.0/16,
+      198.18.0.0/15, 198.51.100.0/24, 203.0.113.0/24, 224.0.0.0/4, 240.0.0.0/4
+    } counter drop
+    meta skuid @LATCH_PROXY_UID@ ip6 daddr 2001:db8::/32 counter drop
+    meta skuid @LATCH_PROXY_UID@ ip6 daddr != 2000::/3 counter drop
+    meta skuid @LATCH_PROXY_UID@ tcp dport 443 counter accept
+    meta skuid @LATCH_PROXY_UID@ counter drop
+  }
+}

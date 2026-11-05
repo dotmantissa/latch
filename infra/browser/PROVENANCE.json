@@ -1,6 +1,6 @@
 {
-  "scope": "Pinned build inputs only. Image build and isolated browser execution remain unverified.",
-  "observed_at": "2026-11-03",
+  "scope": "Pinned build inputs and actual worker infrastructure; supplier acceptance remains pending.",
+  "observed_at": "2026-11-05T11:17:49.408371+00:00",
   "base_image": "mcr.microsoft.com/playwright/python:v1.64.1-noble",
   "registry_index_digest": "sha256:330d401ae23c905896a0c26c66c36fc971b621519e7b11b435a8328d7bf6e031",
   "amd64_manifest_digest": "sha256:7d030ac0638b279ecc72493f8b6706fecef80a893679a23b02f912905c4915c0",
@@ -8,6 +8,6 @@
   "seccomp_source": "https://raw.githubusercontent.com/microsoft/playwright/v1.64.1/utils/docker/seccomp_profile.json",
   "seccomp_sha256": "cc3e61cabda6bbc1e53e54d27ba4d55a9d3be829b6dd1a596f4a7b31b1cc7849",
   "playwright_version": "1.64.1",
-  "result_image_digest": null,
-  "containment_evidence": null
+  "result_image_digest": "sha256:526ab779acd7aa7c153b3642b91b5db9b084c311e968fb8f1b98d726af59087d",
+  "containment_evidence": "docs/evidence/WORKER_STATUS.json"
 }

@@ -1,0 +1,13 @@
+[Unit]
+Description=Latch browser and egress network restrictions
+Before=docker.service latch-egress.service
+After=network-pre.target
+
+[Service]
+Type=oneshot
+ExecStartPre=/usr/sbin/nft add table inet latch_worker
+ExecStart=/usr/sbin/nft -f /etc/latch-worker.nft
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

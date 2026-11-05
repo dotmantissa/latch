@@ -2,6 +2,8 @@ FROM mcr.microsoft.com/playwright/python:v1.64.1-noble@sha256:330d401ae23c905896
 
 LABEL latch.playwright.version="1.64.1"
 LABEL latch.purpose="p0-browser-spike"
+ARG LATCH_PROXY_CA_SPKI
+ENV LATCH_PROXY_CA_SPKI=${LATCH_PROXY_CA_SPKI}
 COPY infra/browser/requirements.lock /opt/latch/requirements.lock
 RUN python -m pip install --no-cache-dir --require-hashes -r /opt/latch/requirements.lock
 COPY services/supervisor/browser_probe.py /opt/latch/browser_probe.py

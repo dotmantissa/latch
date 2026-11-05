@@ -1,7 +1,7 @@
 {
   "status": "passed",
   "scope": "Planning, copy, links, tokens and brand files only. No application or live-service acceptance performed.",
-  "files_checked": 59,
+  "files_checked": 61,
   "owned_copy_strings": 178,
   "contrast": {
     "light": {

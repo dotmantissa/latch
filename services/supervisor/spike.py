@@ -20,7 +20,9 @@ SECCOMP_SHA256 = "cc3e61cabda6bbc1e53e54d27ba4d55a9d3be829b6dd1a596f4a7b31b1cc78
 
 class WorkerSettings(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
-    image: str = Field(pattern=r"^[a-z0-9][a-z0-9./:_-]*@sha256:[a-f0-9]{64}$")
+    image: str = Field(
+        pattern=r"^(?:[a-z0-9][a-z0-9./:_-]*@)?sha256:[a-f0-9]{64}$"
+    )
     network: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$")
     proxy: str
     seccomp_file: Path = ROOT / "infra/browser/seccomp.json"
@@ -179,6 +181,10 @@ def run_task(
         "/tmp:rw,nosuid,nodev,size=512m,uid=1000,gid=1000,mode=1770",
         "--network",
         settings.network,
+        "--dns",
+        "192.0.2.1",
+        "--dns-search",
+        ".",
         settings.image,
     ]
     subprocess.run(command, capture_output=True, timeout=20, check=True)
@@ -223,6 +229,8 @@ def run_task(
             or host.get("CapAdd")
             or "ALL" not in (host.get("CapDrop") or [])
             or host.get("PortBindings")
+            or host.get("Dns") != ["192.0.2.1"]
+            or host.get("DnsSearch") != ["."]
         ):
             raise ValueError("CONTAINER_POLICY_NOT_EFFECTIVE")
         process = subprocess.Popen(

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Check deliverable files without traversing ignored runtimes or exposing secret matches."""
 
+import os
 import re
+import stat
 import subprocess
 from pathlib import Path
 
@@ -23,6 +25,19 @@ patterns = [
     re.compile(rb"Authorization: Bearer " + rb"[A-Za-z0-9_-]{20,}"),
 ]
 failures = []
+configured_secrets = []
+for secret_name in ("database-url", "csrf-key", "vultr-api-key", "vultr-inference-key"):
+    secret_path = ROOT / "private" / secret_name
+    if secret_path.exists() and not secret_path.is_symlink():
+        fd = os.open(secret_path, os.O_RDONLY | os.O_NOFOLLOW)
+        try:
+            info = os.fstat(fd)
+            if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid()
+                    or info.st_mode & 0o077 or info.st_size > 8192):
+                raise SystemExit("Configured secret file must be private, owned and bounded")
+            configured_secrets.append(os.read(fd, 8192).strip())
+        finally:
+            os.close(fd)
 for name in sorted(set(names) - {""}):
     path = ROOT / name
     if path.name.lower() in {"tasks.md", "agent.md", "agents.md"}:
@@ -34,6 +49,9 @@ for name in sorted(set(names) - {""}):
     if not path.is_file():
         continue
     data = path.read_bytes()
+    if any(secret and secret in data for secret in configured_secrets):
+        failures.append((name, "configured_credential"))
+        continue
     for pattern in patterns:
         if pattern.search(data):
             failures.append((name, "credential_pattern"))

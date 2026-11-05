@@ -153,6 +153,56 @@ def require_json_object(message: dict, required_keys: set[str]) -> dict:
     return value
 
 
+def text_tool_probe(client: VultrClient) -> dict:
+    """Two actual provider calls; no source data, purchasing authority or tool execution."""
+    message, text_usage = client.complete(
+        [{"role": "user", "content": 'Return the JSON object {"capability":"text"}.'}],
+        response_format={"type": "json_object"},
+        reasoning_effort="minimal",
+    )
+    if require_json_object(message, {"capability"}) != {"capability": "text"}:
+        raise ProviderFailure("TEXT_CAPABILITY_FAILED")
+    page_token = "p0_captured_page"
+    tool = {
+        "type": "function",
+        "function": {
+            "name": "inspect_page",
+            "description": "Read a public captured page by its token",
+            "parameters": {
+                "type": "object",
+                "properties": {"page_token": {"type": "string"}},
+                "required": ["page_token"],
+                "additionalProperties": False,
+            },
+        },
+    }
+    message, tool_usage = client.complete(
+        [{"role": "user", "content": f"Call inspect_page with page_token {page_token}."}],
+        tools=[tool],
+        tool_choice={"type": "function", "function": {"name": "inspect_page"}},
+        reasoning_effort="minimal",
+    )
+    calls = message.get("tool_calls", [])
+    if len(calls) != 1 or calls[0].get("function", {}).get("name") != "inspect_page":
+        raise ProviderFailure("TOOL_CAPABILITY_FAILED")
+    arguments = calls[0]["function"].get("arguments")
+    if not isinstance(arguments, str) or len(arguments.encode()) > 20 * 1024:
+        raise ProviderFailure("TOOL_CAPABILITY_FAILED")
+    if json.loads(arguments) != {"page_token": page_token}:
+        raise ProviderFailure("TOOL_CAPABILITY_FAILED")
+    return {"text": text_usage, "tools": tool_usage}
+
+
+def provider_probe(settings: Settings) -> dict:
+    return {
+        "status": "passed",
+        "scope": "live_vultr_text_tools",
+        "endpoint": settings.inference_base_url,
+        **text_tool_probe(VultrClient(settings)),
+        "supplier_vision": "pending_actual_source_capture",
+    }
+
+
 def model_probe(settings: Settings, capture_file: Path) -> dict:
     task = load_task(settings)
     allowed = task.admitted_sources(datetime.now(UTC))
@@ -179,39 +229,7 @@ def model_probe(settings: Settings, capture_file: Path) -> dict:
     if hashlib.sha256(raster).hexdigest() != capture["png_sha256"]:
         raise ValueError("Capture hash mismatch")
     client = VultrClient(settings)
-    message, text_usage = client.complete(
-        [{"role": "user", "content": 'Return the JSON object {"capability":"text"}.'}],
-        response_format={"type": "json_object"},
-    )
-    if require_json_object(message, {"capability"}) != {"capability": "text"}:
-        raise ProviderFailure("TEXT_CAPABILITY_FAILED")
-    page_token = "p0_captured_page"
-    tool = {
-        "type": "function",
-        "function": {
-            "name": "inspect_page",
-            "description": "Read a public captured page by its token",
-            "parameters": {
-                "type": "object",
-                "properties": {"page_token": {"type": "string"}},
-                "required": ["page_token"],
-                "additionalProperties": False,
-            },
-        },
-    }
-    message, tool_usage = client.complete(
-        [{"role": "user", "content": f"Call inspect_page with page_token {page_token}."}],
-        tools=[tool],
-        tool_choice={"type": "function", "function": {"name": "inspect_page"}},
-    )
-    calls = message.get("tool_calls", [])
-    if len(calls) != 1 or calls[0].get("function", {}).get("name") != "inspect_page":
-        raise ProviderFailure("TOOL_CAPABILITY_FAILED")
-    arguments = calls[0]["function"].get("arguments")
-    if not isinstance(arguments, str) or len(arguments.encode()) > 20 * 1024:
-        raise ProviderFailure("TOOL_CAPABILITY_FAILED")
-    if json.loads(arguments) != {"page_token": page_token}:
-        raise ProviderFailure("TOOL_CAPABILITY_FAILED")
+    capabilities = text_tool_probe(client)
     # Only public capture content goes to inference. No buyer identity, budget or credential.
     message, vision_usage = client.complete(
         [
@@ -246,8 +264,7 @@ def model_probe(settings: Settings, capture_file: Path) -> dict:
         "scope": "live_vultr_capability",
         "endpoint": settings.inference_base_url,
         "capture_sha256": capture["png_sha256"],
-        "text": text_usage,
-        "tools": tool_usage,
+        **capabilities,
         "vision": vision_usage,
         "vision_correctness": (
             "Requires independent source review; model schema validity is not truth"
@@ -288,6 +305,7 @@ def main() -> int:
     commands.add_parser("runtime")
     commands.add_parser("source")
     commands.add_parser("gate")
+    commands.add_parser("provider")
     worker = commands.add_parser("worker")
     worker.add_argument("--timeout-probe", action="store_true")
     cleanup = commands.add_parser("cleanup-worker")
@@ -302,6 +320,8 @@ def main() -> int:
             report = runtime_probe(settings)
         elif args.command == "source":
             report = source_probe(settings)
+        elif args.command == "provider":
+            report = provider_probe(settings)
         elif args.command == "model":
             report = model_probe(settings, args.capture)
         elif args.command == "worker":

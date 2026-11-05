@@ -7,7 +7,9 @@ Light, Dark and System appearance follow the provided brand tokens.
 
 Offer capture, model extraction, field review, approval, source recheck, release and export
 remain pending. Inspect offers is disabled. Its API returns WORKER_UNAVAILABLE without
-starting a job or creating a result. Vultr credentials can be connected when available.
+starting a job or creating a result. Vultr inference and the dedicated worker are now
+connected and have passed the [infrastructure checks](evidence/WORKER_STATUS.json).
+Actual supplier compatibility and the durable inspection workflow remain separate work.
 
 ## Start the workspace
 
@@ -103,7 +105,7 @@ PATH="$PWD/.tools/node/node_modules/node/bin:$PATH" node .tools/node/node_module
 ```
 
 The login throttle is bounded and process local. Keep one API process until a shared
-limiter is implemented. Public deployment, cloud workers, buyer evaluation and full packet
+limiter is implemented. Public deployment, buyer evaluation and full packet
 recovery remain future packages in the implementation roadmap.
 
 ## Verified checkpoint
@@ -116,4 +118,6 @@ widths in both themes passed overflow checks. Axe reported no A/AA violations in
 checked desktop/mobile theme combinations. Both theme screenshots were visually reviewed.
 
 The nonsensitive [verification record](evidence/WORKSHEET_STATUS.json) separates these
-local checks from pending live supplier, Vultr, release and backup/restore acceptance.
+local checks from pending live supplier, release and backup/restore acceptance.
+The worker infrastructure and actual Vultr text/tools/image checks have their own
+[current evidence](evidence/WORKER_STATUS.json).

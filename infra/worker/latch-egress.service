@@ -1,0 +1,35 @@
+[Unit]
+Description=Latch reviewed public HTTPS egress proxy
+Requires=latch-network.service docker.service
+After=latch-network.service docker.service
+
+[Service]
+Type=simple
+User=latch-egress
+Group=latch-egress
+WorkingDirectory=/opt/latch
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/usr/bin/python3 -m services.supervisor.egress --policy-file /var/lib/latch/egress-policy.json --tls-dir /var/lib/latch/proxy-tls
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+BindReadOnlyPaths=/var/lib/latch/proxy-resolv.conf:/etc/resolv.conf
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+MemoryMax=512M
+TasksMax=48
+CPUQuota=100%
+LimitNOFILE=256
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

@@ -4,6 +4,7 @@ import base64
 import hashlib
 import json
 import os
+import re
 import socket
 import sys
 import time
@@ -79,13 +80,29 @@ def main() -> int:
         raise ValueError("TASK_SCHEMA_INVALID")
     allowed_urls = {target["url"] for target in payload["pages"]}
     asset_origins = set(payload["asset_origins"])
+    proxy_spki = os.environ.get("LATCH_PROXY_CA_SPKI", "")
+    if not proxy_spki or len(base64.b64decode(proxy_spki, validate=True)) != 32:
+        raise ValueError("PINNED_PROXY_CA_REQUIRED")
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(
             headless=True,
+            channel="chromium",
             chromium_sandbox=True,
             proxy={"server": payload["proxy"]},
-            args=["--disable-quic", "--force-webrtc-ip-handling-policy=disable_non_proxied_udp"],
+            args=[
+                "--disable-quic",
+                "--force-webrtc-ip-handling-policy=disable_non_proxied_udp",
+                "--ignore-certificate-errors-spki-list=" + proxy_spki,
+            ],
         )
+        diagnostic = browser.new_page()
+        diagnostic.goto("chrome://sandbox")
+        sandbox_text = diagnostic.locator("body").inner_text()
+        for required in ("PID namespaces\tYes", "Network namespaces\tYes",
+                         "Seccomp-BPF sandbox\tYes"):
+            if required not in sandbox_text:
+                raise ValueError("CHROMIUM_SANDBOX_NOT_EFFECTIVE")
+        diagnostic.close()
         context = browser.new_context(
             viewport={"width": 1440, "height": 1100},
             accept_downloads=False,
@@ -122,6 +139,7 @@ def main() -> int:
             "metadata": "https://169.254.169.254/",
             "private": "https://10.0.0.1/",
             "loopback": "https://127.0.0.1/",
+            "ipv6_private": "https://[fd00::1]/",
         }.items():
             try:
                 probe_page.goto(url, wait_until="commit", timeout=4000)
@@ -133,6 +151,27 @@ def main() -> int:
                 network_observations["direct_public_tcp"] = "connection_observed"
         except OSError:
             network_observations["direct_public_tcp"] = "connection_failed"
+        for name, address in {
+            "host_ssh": ("172.29.240.1", 22),
+            "host_dns_tcp": ("172.29.240.1", 53),
+        }.items():
+            try:
+                with socket.create_connection(address, timeout=2):
+                    network_observations[name] = "connection_observed"
+            except OSError:
+                network_observations[name] = "connection_failed"
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as dns_probe:
+                dns_probe.settimeout(2)
+                dns_probe.sendto(
+                    b"\x12\x34\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00"
+                    b"\x07example\x03com\x00\x00\x01\x00\x01",
+                    ("172.29.240.1", 53),
+                )
+                dns_probe.recv(512)
+                network_observations["host_dns_udp"] = "response_observed"
+        except OSError:
+            network_observations["host_dns_udp"] = "response_failed"
         content_hash = hashlib.sha256(
             json.dumps(
                 [{"url": p["url"], "text": p["text"]} for p in pages],
@@ -152,6 +191,7 @@ def main() -> int:
             "uid": os.getuid(),
             "browser_version": browser.version,
             "chromium_sandbox_requested": True,
+            "chromium_sandbox_text": sandbox_text,
             "network_observations": network_observations,
             "limits": {"text_per_page": 32768, "artifacts_per_source": MAX_BYTES},
             "scope": (
@@ -168,5 +208,11 @@ if __name__ == "__main__":
         raise SystemExit(main())
     except Exception as error:
         # Source-controlled error messages, URL parameters and browser stack traces are not output.
-        print(json.dumps({"complete": False, "error_class": type(error).__name__}))
+        code = "CAPTURE_FAILED"
+        if isinstance(error, BrowserError):
+            if match := re.search(r"net::(ERR_[A-Z_]+)", str(error)):
+                code = match.group(1)
+        elif isinstance(error, ValueError) and re.fullmatch(r"[A-Z_]{1,80}", str(error)):
+            code = str(error)
+        print(json.dumps({"complete": False, "error_class": type(error).__name__, "code": code}))
         raise SystemExit(1) from None

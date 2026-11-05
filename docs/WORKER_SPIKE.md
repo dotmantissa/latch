@@ -2,7 +2,7 @@
 
 This is an operator-run feasibility tool for the private Vultr worker. It is not the
 durable supervisor service specified for P4. Do not run it on a machine containing
-unrelated work. No image has been built or containment verified on this development host.
+unrelated work. The image and actual worker boundary have been exercised on the dedicated Ubuntu 26.04 Vultr host. [Current evidence](evidence/WORKER_STATUS.json) records the exact versions, actual documentation capture, network denial, watchdog and cleanup. Supplier acceptance and the durable P4 supervisor remain separate work.
 
 ## Required worker boundary
 
@@ -14,8 +14,7 @@ metadata and private ranges, and enforce exact navigation and allowed asset poli
 The host firewall must also deny containers access to host services, the control subnet,
 metadata, arbitrary DNS, UDP and direct internet connections.
 
-The spike requires these operator-managed controls. It does not install a permissive
-proxy or change firewall rules. Failure to reach an address is only an observation, not
+The operator setup now installs these controls using [host setup](../scripts/setup_worker.sh), [network setup](../scripts/setup_worker_network.sh), the [external HTTPS proxy](../services/supervisor/egress.py), and dedicated nft/systemd files in infra/worker. The host retains Vultr Ubuntu's UFW policy and adds only the internal bridge to proxy rule. DNS for the proxy uses a service-only binding to the local resolver. Browser DNS, direct forwarding, other host services, private and metadata destinations remain blocked. The proxy decrypts only traffic signed by its private inspection CA, admits exact page paths and bounded static asset paths, pins every public DNS answer at connect, verifies upstream TLS hostnames, refuses redirects/authenticated requests and caps headers, body, concurrency and connection lifetime. Only the public CA SPKI is baked into the browser image; CA/private leaf keys stay on the trusted host. Failure to reach an address is only an observation, not
 proof that the external network policy caused the failure. Review actual proxy/firewall
 denial evidence and Chromium sandbox behavior before passing P0. Browser request routing
 is a second check and cannot substitute for this boundary.
@@ -32,13 +31,15 @@ base image's Python 3.12, separate from the control service's pinned Python 3.13
 Build on the worker from the project root:
 
 ```bash
-docker build --file infra/browser/Dockerfile --tag latch-browser:p0 .
+docker build --build-arg LATCH_PROXY_CA_SPKI="$(cat /var/lib/latch/provenance/proxy-ca-spki.txt)" --file infra/browser/Dockerfile --tag latch-browser:p0 .
 ```
 
 The context allowlist includes only the browser program and locked requirements. It does
 not send the project credentials, database, historical research or local runtime directory
 to the builder. Publish to your private registry only when authorized, then configure
-`LATCH_BROWSER_IMAGE` with the resulting immutable `registry/image@sha256:...` reference.
+`LATCH_BROWSER_IMAGE` with either the resulting immutable `registry/image@sha256:...` reference
+or the exact local content ID returned by docker image inspect --format {{.Id}}. The latter
+requires no registry publication.
 The runner refuses tags, arbitrary flags, root execution and alternate runtime choices.
 No resulting image digest is fabricated in the provenance record.
 
@@ -104,3 +105,35 @@ The command accepts only the exact opaque ID and verifies the container label be
 removing it. It never kills a container selected by source text, a broad name match or an
 unrelated process. The P4 supervisor will later need managed independent watchdogs and
 restart sweeping; this finite P0 tool does not claim to replace those services.
+
+## Current operator checks
+
+The dedicated SSH helper reads only ignored private worker state and an existing host key
+pin. It uses the limited user, refuses password prompts and permits trusted operator
+commands. The application and model never receive this administrative SSH key.
+
+The worker host runner uses exact Python 3.13.18 and five hashed dependencies from the
+control lock, installed as binary wheels by [Python setup](../scripts/setup_worker_python.sh).
+The external proxy uses Ubuntu's standard library Python. The browser uses the image's
+Python 3.12 and pinned Playwright; these process runtimes are intentionally separate.
+
+After installing the credential free source allowlist, reviewed private egress policy and
+public CA pin, the operator can run the technical checks on the worker:
+
+```bash
+cd /opt/latch
+host-venv/bin/python -m services.supervisor.infra_check
+```
+
+This command uses only the actual public gVisor documentation page. It persists opaque
+operation IDs and evidence under /var/lib/latch/infrastructure, runs the original bounded
+host watchdog, checks the actual Chromium sandbox page, probes denied TCP/UDP/IPv6
+connections and confirms exact container removal. It creates no buyer task, supplier
+profile or application data. Review the proxy journal and nft counters alongside request
+failures. Screenshot text was visually checked and then transcribed through an actual
+Vultr image call; that first paragraph matched the captured page.
+
+The existing actual-source commands above continue to require a consented real task and
+reviewed profile. A technical page cannot establish supplier price, tax, stock, delivery
+or buyer value. The finite probe cannot claim durable queue, mTLS supervisor or orphan
+recovery behavior that belongs to P4.
