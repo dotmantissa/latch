@@ -71,9 +71,11 @@ accepting a capture into private quarantine. Artifacts are available only throug
 fenced mTLS channel after cleanup, with verified byte hashes and bounded streaming.
 The runner now independently validates and sanitizes captured images before persisting
 immutable evidence; [evidence delivery](EVIDENCE.md) describes authenticated access to
-successful current-fence captures. Raw quarantine has no product route. Grounded
-extraction is implemented separately; connecting it to the full runner comparison,
-supplier completeness, human review and release validation remain later gates.
+successful current-fence captures. Raw quarantine has no product route. The runner
+also persists [grounded extraction](EXTRACTION.md), with cancellation and lease renewal
+during finite provider calls. Completion requires the complete current capture and
+extraction set. Supplier image correspondence, the full comparison workflow,
+supplier completeness, human acceptance and release validation remain later gates.
 
 Job status and cancellation endpoints enforce the authenticated owner. Stored events use
 server-authored phase fields; they contain no source text, model answer, prompt, private
@@ -95,6 +97,8 @@ From the project root, start the restricted tunnel and the separate runner:
 
 ```bash
 python3 scripts/worker_host.py --tunnel
+LATCH_MODEL_ID=qwen3.8-flash-next \
+LATCH_INFERENCE_KEY_FILE=private/vultr-inference-key \
 .venv/bin/python -m services.runner.jobs
 ```
 

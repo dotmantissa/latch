@@ -2,12 +2,13 @@
 
 import hashlib
 import json
+import time
 from uuid import UUID
 
 from services.common.captures import capture_artifact
 from services.domain.contracts import RequestItem, canonical_json
 from services.domain.extraction import ProposedTerms, ground, public_items
-from services.runner.vultr import ProviderFailure, VultrClient
+from services.runner.vultr import ProviderFailure, ProviderIncomplete, VultrClient
 
 
 def no_duplicate_keys(pairs):
@@ -38,7 +39,12 @@ def extract(
     items: list[RequestItem],
     expected_pages: list[dict],
     on_invalid=None,
+    deadline: float | None = None,
+    checkpoint=None,
 ):
+    deadline = min(deadline, time.monotonic() + 60) if deadline is not None else (
+        time.monotonic() + 60
+    )
     if not 1 <= len(items) <= 3:
         raise ValueError("One to three public item specifications required")
     digest = capture_artifact(capture_bytes, {"pages": expected_pages})
@@ -70,17 +76,32 @@ def extract(
     ]
     usages = []
     for attempt in range(3):
-        message, usage = client.complete(
-            messages,
-            response_format={"type": "json_object"},
-            reasoning_effort="minimal",
-            temperature=0,
-        )
+        truncated = False
+        try:
+            message, usage = client.complete(
+                messages,
+                deadline=deadline,
+                checkpoint=checkpoint,
+                response_format={"type": "json_object"},
+                reasoning_effort="minimal",
+                temperature=0,
+            )
+        except ProviderIncomplete as error:
+            if error.unexpected_tools:
+                raise ProviderFailure("EXTRACTION_UNEXPECTED_TOOL") from None
+            message, usage, truncated = error.message, error.usage, True
         usages.append(usage)
         content = message.get("content")
+        bounded = content.encode()[:20 * 1024].decode("utf-8", "ignore") if isinstance(
+            content, str,
+        ) else ""
         if message.get("tool_calls"):
             raise ProviderFailure("EXTRACTION_UNEXPECTED_TOOL")
         try:
+            if truncated:
+                raise ValueError(
+                    "Response truncated; return concise complete JSON in the same budget"
+                )
             proposal = parse_proposal(content)
             result = ground(
                 proposal,
@@ -106,7 +127,7 @@ def extract(
                     {
                         "attempt": attempt + 1,
                         "validation": diagnostic[:4096],
-                        "content": content[: 20 * 1024] if isinstance(content, str) else "",
+                        "content": bounded,
                         "usage": usage,
                     }
                 )
@@ -116,7 +137,7 @@ def extract(
             messages.append(
                 {
                     "role": "assistant",
-                    "content": content[: 20 * 1024] if isinstance(content, str) else "",
+                    "content": bounded,
                 }
             )
             messages.append(

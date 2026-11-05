@@ -54,8 +54,9 @@ Individual owner-attributed confirm/correct/dispute records, revision preconditi
 history and derived basket checks are implemented; see [review API](REVIEWS.md).
 The API-backed individual source review interface is implemented. Supplier image
 correspondence and observed human review remain pending.
-The runner persists
-sanitized captures; connecting inference to its full comparison workflow is still pending.
+The runner persists sanitized captures and grounded proposals with bounded inference,
+lease renewal, cancellation and complete-set validation. The full comparison workflow
+is still pending.
 
 Implement typed public-only model context, bounded page/region/terms tools, structured extraction, source span checks and vision correspondence call. Record prompts/model/schema versions and actual usage privately. Schema repairs stay bounded; no model authority modules available. Inconsistent/missing terms stay unknown/disputed.
 

@@ -216,7 +216,8 @@ def all_clean(conn, row) -> bool:
 
 
 def finish(conn, job_id, fence, holder, *, success: bool):
-    row = leased(conn, job_id, fence, holder)
+    # Publication gets a fresh lease window while retaining the original hard deadline.
+    row = (heartbeat if success else leased)(conn, job_id, fence, holder)
     if not all_clean(conn, row):
         raise ValueError("CLEANUP_NOT_CONFIRMED")
     if row["cancel_requested_at"]:
@@ -225,6 +226,8 @@ def finish(conn, job_id, fence, holder, *, success: bool):
     if request["current_version"] != row["request_version"] or request["archived_at"]:
         return end(conn, row, "failed", "REQUEST_VERSION_CHANGED")
     if success:
+        if clock(conn) >= row["deadline_at"]:
+            raise FenceLost("JOB_DEADLINE_EXPIRED")
         counts = conn.execute(
             "SELECT count(*) AS n FROM job_tasks WHERE job_id=%s AND fence=%s "
             "AND outcome='captured' AND artifact_hash IS NOT NULL",
@@ -236,6 +239,16 @@ def finish(conn, job_id, fence, holder, *, success: bool):
         ).fetchone()["n"]
         if not expected or counts != expected:
             raise ValueError("COMPLETE_CAPTURE_SET_REQUIRED")
+        from services.storage.evidence import complete_set
+
+        profiles_valid_until = complete_set(conn, row)
+        # Validation takes real time; refuse publication if the lease/deadline elapsed.
+        leased(conn, job_id, fence, holder)
+        at = clock(conn)
+        if at >= row["deadline_at"]:
+            raise FenceLost("JOB_DEADLINE_EXPIRED")
+        if at >= profiles_valid_until:
+            raise ValueError("EVIDENCE_PROFILE_NO_LONGER_ACTIVE")
     return end(conn, row, "succeeded" if success else "failed", None if success else "TASK_FAILED")
 
 

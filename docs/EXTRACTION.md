@@ -21,6 +21,26 @@ Validated proposals retain model, prompt and schema versions, a capture hash, ex
 text offsets and a canonical proposal hash. Conversion into domain offers always
 sets human review false. The model cannot approve, mark feasibility or create release.
 
+The durable runner now loads only the public specification, stable item key and
+required quantity from the pinned request version. It stores the sanitized capture,
+runs extraction outside the transaction, and stores the validated proposal under the
+same job, fence and capture identity. Fixed phase events record extraction start and
+storage without including source text, provider output or private notes.
+
+Each source extraction has one absolute 60 second deadline shared by all repairs,
+bounded by the original 180 second job deadline. During waiting headers or response
+streaming, five second polling rechecks the job fence, cancellation,
+request version and profile, and renew the lease. Deadline or cancellation closes the
+in-flight HTTP request. Provider errors and invalid usage fail closed. A response
+truncated by the output limit can request one of the same two formatting repairs;
+it can never become an accepted proposal. No retry extends the source or job budget.
+
+Successful job completion requires every current source to have a cleaned capture
+and a valid immutable extraction from the current fence. Publication revalidates exact
+spans, typed values, item keys, proposal hashes, bounded usage and active profiles.
+An abandoned or incomplete attempt cannot publish evidence. Unknown terms can be
+valid proposals; a completed extraction does not imply a complete or feasible offer.
+
 The real public Ubiquiti investigation is recorded in [SOURCE_RESEARCH.md](SOURCE_RESEARCH.md)
 and [extraction scope](evidence/EXTRACTION_STATUS.json). Its competing prices and absent
 material terms remain unresolved. Private source bytes, model proposals, validation
@@ -36,6 +56,21 @@ To repeat that explicitly scoped research while its worker profile is active:
 The command uses the established private supervisor tunnel and owned ignored inference
 credential. It creates no application buyer data. Source-text extraction and
 [sanitized evidence storage and delivery](EVIDENCE.md) are implemented, alongside
-[individual review records](REVIEWS.md). Supplier vision correspondence, the review
-workbench and observed human acceptance remain pending.
+[individual review records and their interface](REVIEWS.md). Supplier vision
+correspondence, the full comparison workflow and observed human acceptance remain pending.
 Public inspection remains gated.
+
+The [durable runner check](evidence/RUNNER_EXTRACTION_STATUS.json) used a fresh actual
+supplier capture, three Vultr calls and isolated Neon storage. It completed with an
+ambiguous null price and no human review. Its earlier failed attempts published no
+packet; the provider and publication fixes retained the original limits.
+
+To repeat the actual runner boundary check while the worker profile is active:
+
+```sh
+.venv/bin/python -m scripts.check_runner_extraction
+```
+
+The helper creates only labeled source-research rows in a generated isolated schema,
+revokes its worker fence and drops that exact schema after checking the result. Its
+recovery note and bounded diagnostics remain under ignored var/runner-extraction-check.

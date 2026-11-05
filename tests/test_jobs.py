@@ -1,14 +1,21 @@
 """Real Neon queue transactions and fencing; source-world correctness is a separate gate."""
 
+import hashlib
 from concurrent.futures import ThreadPoolExecutor
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
 from psycopg.types.json import Jsonb
 
 from services.api.errors import ApiError
-from services.storage import jobs
+from services.artifacts.packet import Packet, Page
+from services.artifacts.sanitize import sanitize
+from services.domain.extraction import ProposedTerms, ground
+from services.storage import evidence, jobs
 from services.storage.database import database
+from tests.test_artifacts import png
+from tests.test_extraction import proposal
 
 
 @pytest.fixture(scope="module")
@@ -117,7 +124,7 @@ def test_expired_attempt_requires_cleanup_before_reclaim_and_fences_old_completi
         )
 
 
-def test_cancel_and_complete_capture_require_exact_task_cleanup(queue):
+def test_cancel_and_complete_capture_require_exact_task_cleanup_and_extraction(queue):
     url, schema, owner, _, request = queue
     rid, source = request()
     with database(url, schema=schema) as c:
@@ -148,17 +155,74 @@ def test_cancel_and_complete_capture_require_exact_task_cleanup(queue):
             set(e["safe_payload_json"]) == {"job_id", "version", "state", "attempt"} for e in events
         )
     rid, source = request()
+    raster = sanitize(png())  # Codec assertion only, not an image of a supplier.
+    text = "Boundary assertion with no purchasing terms"
     with database(url, schema=schema) as c:
         jobs.enqueue(c, owner, rid, 1, "complete_assertion")
         job = jobs.claim(c, uuid4())
-    with pytest.raises(ValueError), database(url, schema=schema) as c:
-        jobs.finish(c, job["id"], job["fence"], job["lease_holder"], success=True)
-    with database(url, schema=schema) as c:
+        with pytest.raises(ValueError, match="COMPLETE_CAPTURE_SET_REQUIRED"), c.transaction():
+            jobs.finish(c, job["id"], job["fence"], job["lease_holder"], success=True)
+        jobs.heartbeat(c, job["id"], job["fence"], job["lease_holder"])
         task = jobs.start_task(c, job["id"], job["fence"], job["lease_holder"], source)
         jobs.task_cleaned(
             c, job["id"], job["fence"], job["lease_holder"], task["task_id"], "captured", "a" * 64
         )
+        with pytest.raises(ValueError, match="COMPLETE_EXTRACTION_SET_REQUIRED"), c.transaction():
+            jobs.finish(c, job["id"], job["fence"], job["lease_holder"], success=True)
+        jobs.heartbeat(c, job["id"], job["fence"], job["lease_holder"])
+        source_profile = c.execute(
+            "SELECT profile_id FROM supplier_sources WHERE id=%s", (source,),
+        ).fetchone()["profile_id"]
+        c.execute(
+            "INSERT INTO required_items VALUES(%s,%s,1,'assertion','Private assertion',"
+            "'Public assertion',1,0)", (uuid4(), rid),
+        )
+        at = datetime.fromtimestamp(jobs.clock(c) / 1000, UTC)
+        packet = Packet(
+            capture_hash="a" * 64, content_fingerprint="b" * 64,
+            profile_id=source_profile, profile_version=1,
+            pages=(Page(0, "https://vendor.example.com/offer", text,
+                        hashlib.sha256(text.encode()).hexdigest(), at, at, raster),),
+        )
+        saved = evidence.save_capture(
+            c, job["id"], job["fence"], job["lease_holder"], task["task_id"], packet,
+        )
+        extracted = ground(
+            ProposedTerms.model_validate(proposal()), [{"text": text}], source_id=source,
+            capture_hash=packet.capture_hash, model_id="assertion",
+            expected_item_keys={"assertion"},
+        )
+        usage = {"calls": 1, "capture_sha256": packet.capture_hash, "attempts": [{
+            "model": "assertion", "elapsed_ms": 1,
+            "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+        }]}
+        jobs.heartbeat(c, job["id"], job["fence"], job["lease_holder"])
+        c.execute("UPDATE source_profiles SET active=false WHERE id=%s", (source_profile,))
+        with pytest.raises(ValueError, match="PROFILE"), c.transaction():
+            evidence.save_extraction(
+                c, job["id"], job["fence"], job["lease_holder"], saved["id"], extracted, usage,
+            )
+        c.execute("UPDATE source_profiles SET active=true WHERE id=%s", (source_profile,))
+        jobs.heartbeat(c, job["id"], job["fence"], job["lease_holder"])
+        stored = evidence.save_extraction(
+            c, job["id"], job["fence"], job["lease_holder"], saved["id"], extracted, usage,
+        )
+        assert evidence.save_extraction(
+            c, job["id"], job["fence"], job["lease_holder"], saved["id"], extracted, usage,
+        )["id"] == stored["id"]
+        assert evidence.views(c, owner, rid, 1) == []
+        jobs.heartbeat(c, job["id"], job["fence"], job["lease_holder"])
+        c.execute("UPDATE source_profiles SET active=false WHERE id=%s", (source_profile,))
+        with pytest.raises(ValueError, match="PROFILE"), c.transaction():
+            jobs.finish(c, job["id"], job["fence"], job["lease_holder"], success=True)
+        c.execute("UPDATE source_profiles SET active=true WHERE id=%s", (source_profile,))
+        jobs.heartbeat(c, job["id"], job["fence"], job["lease_holder"])
         assert (
             jobs.finish(c, job["id"], job["fence"], job["lease_holder"], success=True)["state"]
             == "succeeded"
         )
+        assert len(evidence.views(c, owner, rid, 1)) == 1
+        assert c.execute(
+            "SELECT count(*) AS n FROM events WHERE job_id=%s AND kind='extraction_stored'",
+            (job["id"],),
+        ).fetchone()["n"] == 1

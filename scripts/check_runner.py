@@ -28,7 +28,9 @@ def main():
     DIRECTORY.mkdir(mode=0o700, exist_ok=True)
     settings = AppSettings.from_environment().model_copy(
         update={"database_schema": "latch_test_" + uuid4().hex,
-                "evidence_dir": DIRECTORY / "sanitized"}
+                "evidence_dir": DIRECTORY / "sanitized",
+                "model_id": "qwen3.8-flash-next",
+                "inference_key_file": Path("private/vultr-inference-key")}
     )
     schema, url = settings.database_schema, settings.database_url()
     recovery = DIRECTORY / "active.json"
@@ -71,6 +73,10 @@ def main():
                 (rid, Jsonb({"scope": "technical_infrastructure_assertion"}), "assertion"),
             )
             c.execute(
+                "INSERT INTO required_items VALUES(%s,%s,1,'documentation','Runtime assertion',"
+                "'Public technical documentation',1,0)", (uuid4(), rid),
+            )
+            c.execute(
                 "INSERT INTO supplier_sources VALUES(%s,%s,1,'Technical documentation',"
                 "%s,%s,1,'gvisor.dev')",
                 (source, rid, "https://gvisor.dev/docs/", profile.id),
@@ -78,6 +84,8 @@ def main():
             job = jobs.enqueue(c, owner, rid, 1, "technical_runner_recovery")
         environment = os.environ | {
             "LATCH_DB_SCHEMA": schema, "LATCH_EVIDENCE_DIR": str(settings.evidence_dir),
+            "LATCH_MODEL_ID": settings.model_id,
+            "LATCH_INFERENCE_KEY_FILE": str(settings.inference_key_file),
         }
         with (DIRECTORY / "child.log").open("w") as log:
             process = subprocess.Popen(
@@ -181,6 +189,7 @@ def main():
             DIRECTORY / "recovered-quarantine" / (captures[1]["task_id"].hex + ".capture")
         ).is_file()
         assert len(packets) == 1 and len(packets[0].pages) == 1
+        assert packets[0].extraction is not None
         artifact = packets[0].pages[0]
         assert runner.evidence.read(artifact.sanitized_hash)
         report = {
@@ -193,6 +202,7 @@ def main():
             "fresh_fence": True,
             "cleanup_before_retry": True,
             "durable_sanitized_evidence": True,
+            "durable_grounded_extraction": True,
             "final_state": final["state"],
             "events": [e["kind"] for e in events],
         }

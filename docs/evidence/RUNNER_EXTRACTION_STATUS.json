@@ -1,0 +1,44 @@
+{
+  "observed_date": "2026-11-05",
+  "scope": "actual_isolated_supplier_runner_extraction",
+  "status": "passed",
+  "source": "https://store.ui.com/us/en/products/u6-plus",
+  "model": "qwen3.8-flash-next",
+  "actual_vultr_calls": 3,
+  "durable_sanitized_capture": true,
+  "durable_grounded_extraction": true,
+  "complete_fenced_publication": true,
+  "exact_hashes_spans_and_item_keys_revalidated": true,
+  "cleanup_confirmed": true,
+  "isolated_schema_removed": true,
+  "price_state": "ambiguous",
+  "price_cents": null,
+  "human_reviewed": false,
+  "application_buyer_data_created": false,
+  "limits": {
+    "inspection_deadline_ms": 180000,
+    "shared_source_inference_deadline_ms": 60000,
+    "calls_per_source": 3,
+    "output_tokens_per_call": 4096,
+    "retained_answer_bytes": 20480
+  },
+  "regression": {
+    "local_tests_passed": 167,
+    "opt_in_database_tests_skipped_locally": 13,
+    "real_neon_queue_checks_passed": 3,
+    "final_targeted_real_neon_completion_check": "passed",
+    "pending_headers_fence_loss_and_trickle_deadline": "local_adversarial_http_assertions",
+    "truncated_output_never_accepted_and_repairs_share_budget": "local_assertions",
+    "typescript_and_pinned_vite_build": "passed"
+  },
+  "earlier_adverse_observations": [
+    "Absent local supervisor tunnel prevented capture; restored pinned tunnel and cleaned attempt",
+    "Repeated authority queries consumed source inference time; consolidated five second polling",
+    "Provider output truncation failed closed; added repair under the existing formatting budget",
+    "Publication was fenced after extraction storage; batched immutable reads and renewed live lease"
+  ],
+  "public_inspection": "gated",
+  "supplier_image_correspondence": "pending",
+  "comparison_workflow": "pending",
+  "buyer_acceptance_and_release": "pending"
+}

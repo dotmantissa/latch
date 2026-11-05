@@ -12,6 +12,7 @@ appearance. Its request rail and wide worksheet keep the details easy to return 
 Vultr inference and the private Ubuntu worker are connected. Live text, tools, image input,
 browser isolation and restricted networking have passed their infrastructure checks.
 Private durable capture, grounded extraction and sanitized evidence storage are implemented.
+The runner now saves grounded proposals before completing an inspection attempt.
 An actual public supplier research check verified protected PNG delivery and unresolved terms.
 The source review interface shows stored evidence and records individual requester decisions.
 Supplier inspection, approval and source recheck remain unavailable while actual supplier
