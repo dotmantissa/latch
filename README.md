@@ -11,6 +11,8 @@ appearance. Its request rail and wide worksheet keep the details easy to return 
 
 Vultr inference and the private Ubuntu worker are connected. Live text, tools, image input,
 browser isolation and restricted networking have passed their infrastructure checks.
+Private durable capture, grounded extraction and sanitized evidence storage are implemented.
+An actual public supplier research check verified protected PNG delivery and unresolved terms.
 Supplier inspection, evidence review, approval and source recheck remain unavailable while
 actual supplier compatibility and the review workflow are completed.
 A future release will create an internal purchase record without placing a supplier order.
@@ -29,6 +31,7 @@ https://localhost:8443. No supplier pages or requests are seeded.
 | [Security and operations](docs/SECURITY.md) | Sessions, isolation, deployment and recovery requirements |
 | [Runtime probes](docs/P0.md) | Source admission and live capability checks |
 | [Durable worker](docs/SUPERVISOR.md) | Private supervision, job recovery and progress replay |
+| [Captured evidence](docs/EVIDENCE.md) | Isolated PNG sanitization, immutable attribution and authorized delivery |
 | [Worker evidence](docs/evidence/WORKER_STATUS.json) | Actual browser isolation, network denial and Vultr capability observations |
 | [Acceptance plan](docs/ACCEPTANCE.md) | Future real supplier journeys and buyer evaluation |
 | [Brand assets](assets/brand/README.md) | Logo masters, fonts and browser icons |

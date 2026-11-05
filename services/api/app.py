@@ -33,6 +33,9 @@ from services.api.auth import (
 )
 from services.api.errors import ApiError
 from services.api.settings import AppSettings
+from services.artifacts.contracts import CaptureView
+from services.artifacts.sanitize import POLICY_VERSION, ArtifactRejected, dimensions
+from services.artifacts.store import ArtifactStore
 from services.common.config import read_secret
 from services.common.source_policy import StrictRecord
 from services.domain.contracts import (
@@ -45,7 +48,7 @@ from services.domain.contracts import (
     SessionView,
     utc_string,
 )
-from services.storage import jobs
+from services.storage import evidence, jobs
 from services.storage import requests as store
 from services.storage.database import database
 
@@ -168,6 +171,8 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
                 formats = ("application/json", "*/*")
                 if request.url.path.endswith("/events") and request.method == "GET":
                     formats += ("text/event-stream",)
+                if request.url.path.startswith("/api/v1/artifacts/") and request.method == "GET":
+                    formats += ("image/png",)
                 if not any(kind in accepted for kind in formats):
                     raise ApiError(406, "JSON_REQUIRED", "error.format")
                 if request.method in ("POST", "PATCH", "DELETE", "PUT"):
@@ -377,6 +382,34 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
         with authorized(request) as (conn, row):
             result = store.archive(conn, row["user_id"], request_id, body.current_version)
             return Envelope(data=result, resource_version=result.version)
+
+    @app.get("/api/v1/requests/{request_id}/evidence", response_model=Envelope[list[CaptureView]])
+    def captured_evidence(
+        request_id: UUID, request: Request, version: int | None = Query(None, ge=1),
+    ):
+        with authorized(request) as (conn, row):
+            saved = store.view(conn, row["user_id"], request_id, version)
+            result = evidence.views(conn, row["user_id"], request_id, saved.version)
+        return Envelope(data=result, resource_version=saved.version)
+
+    @app.get("/api/v1/artifacts/{artifact_id}", response_class=Response,
+             responses={200: {"content": {"image/png": {}}}})
+    def captured_artifact(artifact_id: UUID, request: Request):
+        with authorized(request) as (conn, row):
+            record = evidence.artifact(conn, row["user_id"], artifact_id)
+        try:
+            if record["sanitizer_version"] != POLICY_VERSION:
+                raise ArtifactRejected("ARTIFACT_POLICY_UNSUPPORTED")
+            with ArtifactStore(settings.evidence_dir) as files:
+                value = files.read(record["sanitized_png_hash"], size=record["sanitized_bytes"])
+            if dimensions(value) != (record["width"], record["height"]):
+                raise ArtifactRejected("ARTIFACT_DIMENSIONS_MISMATCH")
+        except (ArtifactRejected, OSError):
+            raise ApiError(503, "ARTIFACT_UNAVAILABLE") from None
+        return Response(value, media_type="image/png", headers={
+            "Content-Disposition": f'inline; filename="{artifact_id}.png"',
+            "Cross-Origin-Resource-Policy": "same-origin",
+        })
 
     @app.post("/api/v1/requests/{request_id}/inspections")
     def inspect(request_id: UUID, body: VersionInput, request: Request):

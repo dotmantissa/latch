@@ -36,5 +36,8 @@ source-text extraction, not completed supplier qualification or buyer acceptance
 
 See [EXTRACTION.md](EXTRACTION.md) for the implementation and its limits. Continue
 supplier access and completeness investigation using an actual purchase requirement.
-Artifact sanitization, persisted evidence review and supplier image correspondence
-validation remain separate finish gates.
+The later [evidence check](EVIDENCE.md) repeated real capture and extraction in an isolated
+Neon schema, sanitized the raster and verified immutable storage and protected PNG
+delivery. The schema was removed afterward. The sanitized image was visually reviewed;
+both prices and blocked product images remain visible. Persisted human review and
+supplier model image correspondence remain separate finish gates.

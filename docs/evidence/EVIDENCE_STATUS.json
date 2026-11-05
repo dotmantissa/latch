@@ -1,0 +1,52 @@
+{
+  "observed_date": "2026-11-05",
+  "scope": "actual_public_source_evidence_boundary_in_isolated_schema",
+  "source": "https://store.ui.com/us/en/products/u6-plus",
+  "actual_worker_capture_and_cleanup": true,
+  "actual_vultr_extraction_calls": 2,
+  "sanitized_raster_visually_reviewed": true,
+  "sanitizer": {
+    "policy": "png-rgb-seccomp-v1",
+    "pillow": "13.0.0",
+    "actual_file_socket_fork_exec_denials": true,
+    "metadata_removed": true,
+    "malformed_crc_dimensions_animation_transparency_rejected": true,
+    "memory_cpu_wall_time_and_output_limits": true
+  },
+  "neon_and_http": {
+    "immutable_captures_pages_and_proposals": true,
+    "idempotency": true,
+    "wrong_fence_denied": true,
+    "running_attempt_not_published": true,
+    "authenticated_sanitized_png_hash_and_headers": true,
+    "other_owner_denied": true,
+    "corrupted_artifact_unavailable": true,
+    "isolated_schema_removed": true
+  },
+  "runner_recovery": {
+    "actual_process_killed_during_browser_task": true,
+    "real_lease_expired": true,
+    "cleanup_before_fresh_fence_retry": true,
+    "successful_retry_persisted_sanitized_evidence": true,
+    "isolated_schema_removed": true
+  },
+  "regression": {
+    "local_tests_passed": 147,
+    "real_neon_checks_passed": 13,
+    "populated_isolated_v1_upgrade_preserved_account": true,
+    "typescript_and_pinned_vite_build": "passed"
+  },
+  "application_schema": {
+    "version": 3,
+    "empty_inventory_confirmed_before_upgrade": true,
+    "original_migrations_unchanged": true
+  },
+  "price_state": "ambiguous",
+  "human_reviewed": false,
+  "application_buyer_data_created": false,
+  "supplier_qualification": "pending",
+  "buyer_acceptance": "pending",
+  "supplier_model_image_correspondence": "pending",
+  "review_workbench_and_release": "pending",
+  "public_inspection": "gated"
+}

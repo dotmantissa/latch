@@ -11,10 +11,12 @@ from pathlib import Path
 from uuid import uuid4
 
 from services.api.settings import AppSettings
+from services.artifacts.packet import prepare
+from services.artifacts.store import ArtifactStore
 from services.common.source_policy import SourceProfile
 from services.common.task_contracts import TaskCommand, TaskRef
 from services.runner.supervisor import SupervisorClient, SupervisorRejected, SupervisorUnavailable
-from services.storage import jobs
+from services.storage import evidence, jobs
 from services.storage.database import database
 
 
@@ -27,6 +29,7 @@ class Runner:
         if artifacts.is_symlink() or artifacts.stat().st_mode & 0o077:
             raise ValueError("PRIVATE_QUARANTINE_REQUIRED")
         self.stop = threading.Event()
+        self.evidence = ArtifactStore(settings.evidence_dir)
 
     def db(self):
         return database(self.url, schema=self.schema)
@@ -114,6 +117,7 @@ class Runner:
                             self.client.artifact(
                                 task["task_id"], ref, target, status["artifact_hash"]
                             )
+                            packet = prepare(target.read_bytes(), profile, url, self.evidence)
                             outcome, digest = "captured", status["artifact_hash"]
                         else:
                             outcome, digest, succeeded = "failed", None, False
@@ -127,6 +131,11 @@ class Runner:
                                 outcome,
                                 digest,
                             )
+                            if outcome == "captured":
+                                evidence.save_capture(
+                                    c, job["id"], job["fence"], self.holder,
+                                    task["task_id"], packet,
+                                )
                         break
                     self.stop.wait(0.5)
                 if not succeeded:
@@ -175,6 +184,7 @@ def main():
     try:
         runner.loop()
     finally:
+        runner.evidence.close()
         client.close()
 
 

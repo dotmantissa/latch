@@ -29,11 +29,12 @@ diagnostics and usage are in ignored operator evidence, not public deliverables.
 To repeat that explicitly scoped research while its worker profile is active:
 
 ```sh
-.venv/bin/python scripts/check_supplier_extraction.py --capture-only
-.venv/bin/python scripts/check_supplier_extraction.py --extract-existing
+.venv/bin/python -m scripts.check_supplier_extraction --capture-only
+.venv/bin/python -m scripts.check_supplier_extraction --extract-existing
 ```
 
 The command uses the established private supervisor tunnel and owned ignored inference
-credential. It creates no application buyer data. Source-text extraction is implemented;
-sanitized artifact delivery, durable reviewed fields, supplier vision correspondence
-and the review workbench remain pending. Public inspection remains gated.
+credential. It creates no application buyer data. Source-text extraction and
+[sanitized evidence storage and delivery](EVIDENCE.md) are implemented. Durable reviewed
+fields, supplier vision correspondence and the review workbench remain pending.
+Public inspection remains gated.

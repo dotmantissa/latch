@@ -69,8 +69,11 @@ Browser output is untrusted. The supervisor checks byte caps, complete page sets
 navigation chains, capture intervals, status, text/raster dimensions and hashes before
 accepting a capture into private quarantine. Artifacts are available only through the
 fenced mTLS channel after cleanup, with verified byte hashes and bounded streaming.
-They are not exposed as public files or purchasing authority. Supplier completeness,
-extraction, evidence review and release validation are later gates.
+The runner now independently validates and sanitizes captured images before persisting
+immutable evidence; [evidence delivery](EVIDENCE.md) describes authenticated access to
+successful current-fence captures. Raw quarantine has no product route. Grounded
+extraction is implemented separately; connecting it to the full runner comparison,
+supplier completeness, human review and release validation remain later gates.
 
 Job status and cancellation endpoints enforce the authenticated owner. Stored events use
 server-authored phase fields; they contain no source text, model answer, prompt, private

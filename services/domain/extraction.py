@@ -75,30 +75,36 @@ class ProposedTerms(StrictRecord):
 
 
 class Span(StrictRecord):
-    page_index: int
-    start: int
-    end: int
-    quote: str
-    capture_hash: str
+    page_index: Annotated[StrictInt, Field(ge=0, le=1)]
+    start: Annotated[StrictInt, Field(ge=0, le=32768)]
+    end: Annotated[StrictInt, Field(ge=1, le=32768)]
+    quote: str = Field(min_length=1, max_length=1000)
+    capture_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+
+LineKind = Literal[
+    "coverage", "exact_match", "sell_unit_size", "min_sell_units", "price_cents", "available_units"
+]
+TermKind = Literal["shipping_cents", "tax_included", "latest_arrival", "conditions_satisfied"]
 
 
 class GroundedField(StrictRecord):
-    item_key: str | None
-    kind: str
+    item_key: Annotated[str, Field(pattern=r"^[a-zA-Z0-9_]{1,64}$")] | None
+    kind: LineKind | TermKind
     state: Literal["supported", "ambiguous", "unknown"]
     value: object | None
     reason: Reason | None
-    spans: list[Span]
+    spans: list[Span] = Field(max_length=4)
 
 
 class Extraction(StrictRecord):
     source_id: UUID
-    capture_hash: str
+    capture_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
     schema_version: Literal["fields-v1"] = EXTRACTION_SCHEMA_VERSION
     prompt_version: Literal["public-terms-v1"] = PROMPT_VERSION
-    model_id: str
-    fields: list[GroundedField]
-    proposal_hash: str
+    model_id: str = Field(min_length=1, max_length=100)
+    fields: list[GroundedField] = Field(min_length=10, max_length=22)
+    proposal_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
 
 
 def public_items(items: list[RequestItem]) -> list[dict]:
@@ -236,3 +242,25 @@ def unreviewed_offer(extraction: Extraction) -> OfferTerms:
         terms_reviewed=False,
         **terms,
     )
+
+
+def revalidate(extraction: Extraction, pages: list[dict], expected_keys: set[str]) -> None:
+    """Reconstruct the untrusted typed proposal and reproduce its exact spans and hash."""
+    lines, terms = {}, {}
+    for field in extraction.fields:
+        target = terms if field.item_key is None else lines.setdefault(field.item_key, {})
+        if field.kind in target:
+            raise ValueError("Duplicate extracted field")
+        target[field.kind] = {
+            "state": field.state, "value": field.value, "reason": field.reason,
+            "evidence": [{"page_index": s.page_index, "quote": s.quote} for s in field.spans],
+        }
+    proposal = ProposedTerms.model_validate({
+        "lines": [{"item_key": key, **value} for key, value in lines.items()], **terms,
+    })
+    reproduced = ground(
+        proposal, pages, source_id=extraction.source_id, capture_hash=extraction.capture_hash,
+        model_id=extraction.model_id, expected_item_keys=expected_keys,
+    )
+    if reproduced != extraction:
+        raise ValueError("Extraction evidence or proposal hash mismatch")

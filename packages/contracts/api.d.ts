@@ -193,6 +193,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/requests/{request_id}/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Captured Evidence */
+        get: operations["captured_evidence_api_v1_requests__request_id__evidence_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/artifacts/{artifact_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Captured Artifact */
+        get: operations["captured_artifact_api_v1_artifacts__artifact_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/requests/{request_id}/inspections": {
         parameters: {
             query?: never;
@@ -265,6 +299,64 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** CaptureView */
+        CaptureView: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /** Request Version */
+            request_version: number;
+            /** Capture Hash */
+            capture_hash: string;
+            /** Content Fingerprint */
+            content_fingerprint: string;
+            /** Profile Id */
+            profile_id: string;
+            /** Profile Version */
+            profile_version: number;
+            /**
+             * Review State
+             * @default unreviewed
+             * @constant
+             */
+            review_state: "unreviewed";
+            /** Pages */
+            pages: components["schemas"]["CapturedPageView"][];
+            extraction: components["schemas"]["Extraction"] | null;
+        };
+        /** CapturedPageView */
+        CapturedPageView: {
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /** Page Index */
+            page_index: number;
+            /** Source Url */
+            source_url: string;
+            /** Source Text */
+            source_text: string;
+            /** Text Hash */
+            text_hash: string;
+            /** Started At */
+            started_at: string;
+            /** Completed At */
+            completed_at: string;
+            /** Sanitized Hash */
+            sanitized_hash: string;
+            /** Width */
+            width: number;
+            /** Height */
+            height: number;
+        };
         /** Envelope[JobView] */
         Envelope_JobView_: {
             data: components["schemas"]["JobView"];
@@ -289,6 +381,13 @@ export interface components {
             /** Resource Version */
             resource_version?: number | null;
         };
+        /** Envelope[list[CaptureView]] */
+        Envelope_list_CaptureView__: {
+            /** Data */
+            data: components["schemas"]["CaptureView"][];
+            /** Resource Version */
+            resource_version?: number | null;
+        };
         /** Envelope[list[ProfileView]] */
         Envelope_list_ProfileView__: {
             /** Data */
@@ -302,6 +401,52 @@ export interface components {
             data: number[];
             /** Resource Version */
             resource_version?: number | null;
+        };
+        /** Extraction */
+        Extraction: {
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /** Capture Hash */
+            capture_hash: string;
+            /**
+             * Schema Version
+             * @default fields-v1
+             * @constant
+             */
+            schema_version: "fields-v1";
+            /**
+             * Prompt Version
+             * @default public-terms-v1
+             * @constant
+             */
+            prompt_version: "public-terms-v1";
+            /** Model Id */
+            model_id: string;
+            /** Fields */
+            fields: components["schemas"]["GroundedField"][];
+            /** Proposal Hash */
+            proposal_hash: string;
+        };
+        /** GroundedField */
+        GroundedField: {
+            /** Item Key */
+            item_key: string | null;
+            /** Kind */
+            kind: ("coverage" | "exact_match" | "sell_unit_size" | "min_sell_units" | "price_cents" | "available_units") | ("shipping_cents" | "tax_included" | "latest_arrival" | "conditions_satisfied");
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "supported" | "ambiguous" | "unknown";
+            /** Value */
+            value: unknown | null;
+            /** Reason */
+            reason: ("source_absent" | "conditional" | "unreadable" | "unsupported_basis" | "conflicting_values") | null;
+            /** Spans */
+            spans: components["schemas"]["Span"][];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -459,6 +604,19 @@ export interface components {
             expires_at: string;
             /** Reauth Fresh */
             reauth_fresh: boolean;
+        };
+        /** Span */
+        Span: {
+            /** Page Index */
+            page_index: number;
+            /** Start */
+            start: number;
+            /** End */
+            end: number;
+            /** Quote */
+            quote: string;
+            /** Capture Hash */
+            capture_hash: string;
         };
         /** UserView */
         UserView: {
@@ -846,6 +1004,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_RequestView_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    captured_evidence_api_v1_requests__request_id__evidence_get: {
+        parameters: {
+            query?: {
+                version?: number | null;
+            };
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_list_CaptureView__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    captured_artifact_api_v1_artifacts__artifact_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": unknown;
                 };
             };
             /** @description Validation Error */

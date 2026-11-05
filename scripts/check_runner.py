@@ -18,7 +18,7 @@ from services.common.source_policy import SourceProfile
 from services.common.task_contracts import TaskRef
 from services.runner.jobs import Runner
 from services.runner.supervisor import SupervisorClient
-from services.storage import jobs
+from services.storage import evidence, jobs
 from services.storage.database import database, direct_url, initialize
 
 DIRECTORY = Path("var/runner-check")
@@ -27,13 +27,15 @@ DIRECTORY = Path("var/runner-check")
 def main():
     DIRECTORY.mkdir(mode=0o700, exist_ok=True)
     settings = AppSettings.from_environment().model_copy(
-        update={"database_schema": "latch_test_" + uuid4().hex}
+        update={"database_schema": "latch_test_" + uuid4().hex,
+                "evidence_dir": DIRECTORY / "sanitized"}
     )
     schema, url = settings.database_schema, settings.database_url()
     recovery = DIRECTORY / "active.json"
     recovery.write_text(json.dumps({"schema": schema, "phase": "initializing"}))
     client = SupervisorClient(Path("private/supervisor-tls"))
     process = None
+    runner = None
     initialize(url, schema=schema)
     try:
         profile = SourceProfile(
@@ -74,7 +76,9 @@ def main():
                 (source, rid, "https://gvisor.dev/docs/", profile.id),
             )
             job = jobs.enqueue(c, owner, rid, 1, "technical_runner_recovery")
-        environment = os.environ | {"LATCH_DB_SCHEMA": schema}
+        environment = os.environ | {
+            "LATCH_DB_SCHEMA": schema, "LATCH_EVIDENCE_DIR": str(settings.evidence_dir),
+        }
         with (DIRECTORY / "child.log").open("w") as log:
             process = subprocess.Popen(
                 [
@@ -169,12 +173,16 @@ def main():
             events = c.execute(
                 "SELECT kind FROM events WHERE job_id=%s ORDER BY id", (job["id"],)
             ).fetchall()
+            packets = evidence.views(c, owner, rid, 1)
         assert final["state"] == "succeeded" and len(captures) == 2
         assert all(t["cleanup_at"] is not None for t in captures)
         assert captures[0]["outcome"] == "interrupted" and captures[1]["outcome"] == "captured"
         assert (
             DIRECTORY / "recovered-quarantine" / (captures[1]["task_id"].hex + ".capture")
         ).is_file()
+        assert len(packets) == 1 and len(packets[0].pages) == 1
+        artifact = packets[0].pages[0]
+        assert runner.evidence.read(artifact.sanitized_hash)
         report = {
             "status": "passed",
             "scope": "actual_isolated_Neon_and_worker_runner_recovery",
@@ -184,12 +192,15 @@ def main():
             "real_lease_expired": True,
             "fresh_fence": True,
             "cleanup_before_retry": True,
+            "durable_sanitized_evidence": True,
             "final_state": final["state"],
             "events": [e["kind"] for e in events],
         }
         (DIRECTORY / "result.json").write_text(json.dumps(report, indent=2) + "\n")
         print(json.dumps(report, indent=2), flush=True)
     finally:
+        if runner:
+            runner.evidence.close()
         if process and process.poll() is None:
             process.kill()
             process.wait(timeout=10)

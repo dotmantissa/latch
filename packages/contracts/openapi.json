@@ -450,6 +450,99 @@
         }
       }
     },
+    "/api/v1/requests/{request_id}/evidence": {
+      "get": {
+        "summary": "Captured Evidence",
+        "operationId": "captured_evidence_api_v1_requests__request_id__evidence_get",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_CaptureView__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/artifacts/{artifact_id}": {
+      "get": {
+        "summary": "Captured Artifact",
+        "operationId": "captured_artifact_api_v1_artifacts__artifact_id__get",
+        "parameters": [
+          {
+            "name": "artifact_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Artifact Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "image/png": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/requests/{request_id}/inspections": {
       "post": {
         "summary": "Inspect",
@@ -617,6 +710,137 @@
   },
   "components": {
     "schemas": {
+      "CaptureView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "source_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Source Id"
+          },
+          "request_version": {
+            "type": "integer",
+            "title": "Request Version"
+          },
+          "capture_hash": {
+            "type": "string",
+            "title": "Capture Hash"
+          },
+          "content_fingerprint": {
+            "type": "string",
+            "title": "Content Fingerprint"
+          },
+          "profile_id": {
+            "type": "string",
+            "title": "Profile Id"
+          },
+          "profile_version": {
+            "type": "integer",
+            "title": "Profile Version"
+          },
+          "review_state": {
+            "type": "string",
+            "const": "unreviewed",
+            "title": "Review State",
+            "default": "unreviewed"
+          },
+          "pages": {
+            "items": {
+              "$ref": "#/components/schemas/CapturedPageView"
+            },
+            "type": "array",
+            "title": "Pages"
+          },
+          "extraction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Extraction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "source_id",
+          "request_version",
+          "capture_hash",
+          "content_fingerprint",
+          "profile_id",
+          "profile_version",
+          "pages",
+          "extraction"
+        ],
+        "title": "CaptureView"
+      },
+      "CapturedPageView": {
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Artifact Id"
+          },
+          "page_index": {
+            "type": "integer",
+            "title": "Page Index"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url"
+          },
+          "source_text": {
+            "type": "string",
+            "title": "Source Text"
+          },
+          "text_hash": {
+            "type": "string",
+            "title": "Text Hash"
+          },
+          "started_at": {
+            "type": "string",
+            "title": "Started At"
+          },
+          "completed_at": {
+            "type": "string",
+            "title": "Completed At"
+          },
+          "sanitized_hash": {
+            "type": "string",
+            "title": "Sanitized Hash"
+          },
+          "width": {
+            "type": "integer",
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "title": "Height"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "artifact_id",
+          "page_index",
+          "source_url",
+          "source_text",
+          "text_hash",
+          "started_at",
+          "completed_at",
+          "sanitized_hash",
+          "width",
+          "height"
+        ],
+        "title": "CapturedPageView"
+      },
       "Envelope_JobView_": {
         "properties": {
           "data": {
@@ -709,6 +933,33 @@
         ],
         "title": "Envelope[SessionView]"
       },
+      "Envelope_list_CaptureView__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/CaptureView"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "resource_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[list[CaptureView]]"
+      },
       "Envelope_list_ProfileView__": {
         "properties": {
           "data": {
@@ -762,6 +1013,158 @@
           "data"
         ],
         "title": "Envelope[list[int]]"
+      },
+      "Extraction": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Source Id"
+          },
+          "capture_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Capture Hash"
+          },
+          "schema_version": {
+            "type": "string",
+            "const": "fields-v1",
+            "title": "Schema Version",
+            "default": "fields-v1"
+          },
+          "prompt_version": {
+            "type": "string",
+            "const": "public-terms-v1",
+            "title": "Prompt Version",
+            "default": "public-terms-v1"
+          },
+          "model_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Model Id"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/GroundedField"
+            },
+            "type": "array",
+            "maxItems": 22,
+            "minItems": 10,
+            "title": "Fields"
+          },
+          "proposal_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Proposal Hash"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_id",
+          "capture_hash",
+          "model_id",
+          "fields",
+          "proposal_hash"
+        ],
+        "title": "Extraction"
+      },
+      "GroundedField": {
+        "properties": {
+          "item_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_]{1,64}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Key"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "coverage",
+                  "exact_match",
+                  "sell_unit_size",
+                  "min_sell_units",
+                  "price_cents",
+                  "available_units"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "shipping_cents",
+                  "tax_included",
+                  "latest_arrival",
+                  "conditions_satisfied"
+                ]
+              }
+            ],
+            "title": "Kind"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "supported",
+              "ambiguous",
+              "unknown"
+            ],
+            "title": "State"
+          },
+          "value": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "source_absent",
+                  "conditional",
+                  "unreadable",
+                  "unsupported_basis",
+                  "conflicting_values"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "spans": {
+            "items": {
+              "$ref": "#/components/schemas/Span"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Spans"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "item_key",
+          "kind",
+          "state",
+          "value",
+          "reason",
+          "spans"
+        ],
+        "title": "GroundedField"
       },
       "HTTPValidationError": {
         "properties": {
@@ -1217,6 +1620,49 @@
           "reauth_fresh"
         ],
         "title": "SessionView"
+      },
+      "Span": {
+        "properties": {
+          "page_index": {
+            "type": "integer",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Page Index"
+          },
+          "start": {
+            "type": "integer",
+            "maximum": 32768.0,
+            "minimum": 0.0,
+            "title": "Start"
+          },
+          "end": {
+            "type": "integer",
+            "maximum": 32768.0,
+            "minimum": 1.0,
+            "title": "End"
+          },
+          "quote": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Quote"
+          },
+          "capture_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Capture Hash"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "page_index",
+          "start",
+          "end",
+          "quote",
+          "capture_hash"
+        ],
+        "title": "Span"
       },
       "UserView": {
         "properties": {

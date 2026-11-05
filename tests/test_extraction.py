@@ -7,7 +7,13 @@ import pytest
 from pydantic import ValidationError
 
 from services.domain.contracts import RequestItem
-from services.domain.extraction import ProposedTerms, ground, public_items, unreviewed_offer
+from services.domain.extraction import (
+    ProposedTerms,
+    ground,
+    public_items,
+    revalidate,
+    unreviewed_offer,
+)
 from services.runner.extraction import parse_proposal
 
 
@@ -117,3 +123,26 @@ def test_conflicting_amounts_remain_ambiguous_and_public_projection_excludes_not
     payload = json.dumps(public_items([item]))
     assert "Internal purchasing note" not in payload and "Public component specification" in payload
     assert set(public_items([item])[0]) == {"key", "public_specification", "required_units"}
+
+
+def test_storage_revalidation_rejects_typed_value_span_and_hash_tampering():
+    data = proposal()
+    data["lines"][0]["price_cents"] = supported(1234, "Price assertion $12.34")
+    original = bind(data)
+    pages = [{"text": "Price assertion $12.34"}]
+    revalidate(original, pages, {"assertion"})
+    price = next(f for f in original.fields if f.kind == "price_cents")
+    for changed in (
+        price.model_copy(update={"value": "1234"}),
+        price.model_copy(update={"spans": [price.spans[0].model_copy(update={"start": 1})]}),
+    ):
+        invalid = original.model_copy(update={
+            "fields": [changed if f.kind == "price_cents" else f for f in original.fields],
+        })
+        with pytest.raises(ValueError):
+            revalidate(invalid, pages, {"assertion"})
+    with pytest.raises(ValueError):
+        revalidate(original.model_copy(update={"proposal_hash": "b" * 64}), pages, {"assertion"})
+    with pytest.raises(ValueError):
+        revalidate(original.model_copy(update={"fields": original.fields + [price]}),
+                   pages, {"assertion"})
