@@ -38,6 +38,8 @@ class SourceReviewView(StrictRecord):
     request_id: UUID
     request_version: int
     current: bool
+    review_allowed: bool
+    review_blocker: Literal["packet_changed", "inspection_active", "profile_unavailable"] | None
     review_version: int
     review_set_hash: str
     checked_fields: int
@@ -227,12 +229,31 @@ def view(conn, owner_id, extraction_id):
             datetime.fromisoformat(snapshot["required_by"]),
             datetime.now(UTC),
         )
+    current = is_current(conn, capture, request)
+    blocker = None
+    if not current:
+        blocker = "packet_changed"
+    elif conn.execute(
+        "SELECT 1 FROM jobs WHERE request_id=%s AND state IN "
+        "('queued','running','recovering','cancelling')",
+        (capture["request_id"],),
+    ).fetchone():
+        blocker = "inspection_active"
+    else:
+        profile = conn.execute(
+            "SELECT active,expires_at FROM source_profiles WHERE id=%s AND version=%s",
+            (capture["profile_id"], capture["profile_version"]),
+        ).fetchone()
+        if not profile or not profile["active"] or profile["expires_at"] <= jobs.clock(conn):
+            blocker = "profile_unavailable"
     return SourceReviewView(
         extraction_id=extraction_id,
         capture_id=capture["id"],
         request_id=capture["request_id"],
         request_version=capture["request_version"],
-        current=is_current(conn, capture, request),
+        current=current,
+        review_allowed=blocker is None,
+        review_blocker=blocker,
         review_version=head["version"] if head else 0,
         review_set_hash=content_hash(
             {

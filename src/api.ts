@@ -9,6 +9,12 @@ export type SavedRequest = components["schemas"]["RequestView"];
 export type RequestPage = components["schemas"]["RequestPage"];
 export type Session = components["schemas"]["SessionView"];
 export type Profile = components["schemas"]["ProfileView"];
+export type Capture = components["schemas"]["CaptureView"];
+export type SourceReview = components["schemas"]["SourceReviewView"];
+export type ReviewField = components["schemas"]["FieldView"];
+export type ReviewInput = components["schemas"]["ReviewInput"];
+export type ReviewPage = components["schemas"]["ReviewPage"];
+export type ReviewRecord = components["schemas"]["ReviewView"];
 export const copy = (key: string): string =>
   (catalog as Record<string, string>)[key] ?? catalog["error.generic"];
 let csrf = "";

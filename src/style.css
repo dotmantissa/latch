@@ -962,3 +962,81 @@ dd small {
   .public-document { padding: 40px 16px 24px; }
   .public-header .brand { width: 88px; }
 }
+
+.review-document { max-width: 1800px; }
+.review-padding { padding: 0 32px; }
+.review-notice:empty { display: none; }
+.review-empty { padding: 40px 32px; min-height: 300px; }
+.source-tabs { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 32px 24px; border-bottom: 1px solid var(--divider); }
+.source-tabs button { max-width: 100%; overflow-wrap: anywhere; }
+.source-tabs button[aria-pressed="true"], .review-actions button[aria-pressed="true"] { background: var(--wash); color: var(--accent); border-color: var(--accent); }
+.review-stage { display: grid; grid-template-columns: minmax(0, 1fr) 288px; align-items: start; }
+.review-ledger { padding: 32px; min-width: 0; }
+.term-group { margin: 24px 0 32px; }
+.term-group h3 { font-size: 16px; overflow-wrap: anywhere; margin-bottom: 12px; }
+.term-row { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(100px, .8fr); gap: 4px 16px; padding: 16px 0; text-align: left; border: 0; border-top: 1px solid var(--divider); border-radius: 0; font-weight: 500; justify-items: start; }
+.term-row[aria-pressed="true"] { background: var(--wash); padding-left: 12px; padding-right: 12px; }
+.term-value { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; max-width: 100%; justify-self: end; }
+.term-label { overflow-wrap: anywhere; }
+.term-state { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.term-state.buyer_checked { color: var(--success); }
+.review-summary { padding: 32px 24px; border-left: 1px solid var(--divider); min-width: 0; }
+.review-total { font: 32px/1.3 "DM Serif Display", serif; overflow-wrap: anywhere; }
+.review-history { border-top: 1px solid var(--divider); padding-top: 16px; }
+.history-record { border-bottom: 1px solid var(--divider); padding: 16px 0; }
+.evidence-panel { color: var(--text); background: var(--surface); border: 1px solid var(--divider); border-radius: 2px; min-width: 0; }
+.evidence-panel:not(:modal) { position: sticky; top: 16px; width: 100%; margin: 24px 0; max-height: calc(100dvh - 32px); padding: 0; grid-column: 2; grid-row: 1; }
+.evidence-heading { padding: 20px; border-bottom: 1px solid var(--divider); display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; }
+.evidence-heading h2 { margin: 8px 0 0; }
+.evidence-heading > div { min-width: 0; overflow-wrap: anywhere; }
+.evidence-heading h2:focus { outline: none; }
+.evidence-body { padding: 20px; overflow: auto; max-height: calc(100dvh - 180px); }
+.original-field { border-bottom: 1px solid var(--divider); padding-bottom: 16px; }
+.source-quote { white-space: pre-wrap; overflow-wrap: anywhere; margin: 12px 0; }
+.source-pages { min-width: 0; }
+.captured-page { padding: 20px 0; border-bottom: 1px solid var(--divider); }
+.source-link { flex-wrap: wrap; max-width: 100%; }
+.source-url { flex-basis: 100%; font-size: 13px; overflow-wrap: anywhere; }
+.captured-text { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 320px; overflow-y: auto; border: 1px solid var(--control); border-radius: 2px; padding: 16px; background: var(--canvas); font-size: 14px; }
+.captured-text mark { color: var(--accent); background: var(--wash); font-weight: 700; }
+.capture-image-scroll { max-height: 65dvh; max-width: 100%; overflow: auto; border: 1px solid var(--control); background: var(--subtle); }
+.capture-image-scroll img { display: block; max-width: none; object-fit: contain; }
+.capture-image-scroll .fit-image { width: 100%; height: auto; }
+.zoom-control { margin: 16px 0; }
+.field-review-form { padding-top: 24px; }
+.field-review-form fieldset { min-width: 0; border: 0; margin: 0; padding: 0; }
+.field-review-form legend { font-weight: 700; margin-bottom: 16px; }
+.review-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.field-review-form .quote-editor { margin: 24px 0; padding: 16px 0; border-top: 1px solid var(--divider); border-bottom: 1px solid var(--divider); }
+.quote-entry { margin: 24px 0; }
+.field-review-form .evidence-ack { display: flex; align-items: flex-start; gap: 12px; margin: 24px 0 12px; cursor: pointer; }
+.evidence-ack input { flex: 0 0 24px; width: 24px; height: 24px; margin: 0; padding: 0; accent-color: var(--accent); }
+.field-review-form .primary { margin: 24px 0 8px; }
+@media (min-width: 1024px) {
+  .review-stage.has-evidence { grid-template-columns: minmax(240px, .85fr) minmax(360px, 1.15fr); padding-right: 24px; }
+  .has-evidence .review-summary { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--divider); }
+}
+@media (max-width: 1023px) {
+  .review-stage { grid-template-columns: minmax(0, 1fr); }
+  .review-summary { border-left: 0; border-top: 1px solid var(--divider); padding: 24px 32px; }
+  .evidence-panel:modal { width: 100%; max-width: 100%; height: 100dvh; max-height: 100dvh; margin: 0; padding: 0; border: 0; border-radius: 0; }
+  .evidence-panel::backdrop { background: var(--canvas); }
+  .evidence-panel .evidence-body { max-height: calc(100dvh - 160px); padding-bottom: max(32px, env(safe-area-inset-bottom)); }
+}
+@media (max-width: 767px) {
+  .review-ledger, .review-summary, .review-empty { padding: 24px 16px; }
+  .review-padding { padding: 0 16px; }
+  .source-tabs { padding: 0 16px 20px; }
+  .evidence-heading, .evidence-body { padding: 16px; }
+  .term-row { grid-template-columns: minmax(0, 1fr); }
+  .term-value { justify-self: start; }
+  .review-actions button { flex: 1 1 auto; }
+  .field-review-form .primary { width: 100%; }
+}
+.review-document { container-type: inline-size; container-name: review; }
+@container review (max-width: 720px) {
+  .review-stage, .review-stage.has-evidence { grid-template-columns: minmax(0, 1fr); padding-right: 0; }
+  .evidence-panel:not(:modal) { position: relative; top: auto; grid-column: 1; grid-row: auto; max-height: none; }
+  .evidence-panel:not(:modal) .evidence-body { max-height: none; }
+  .review-stage .review-summary { grid-column: 1; border-left: 0; border-top: 1px solid var(--divider); }
+}

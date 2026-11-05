@@ -22,7 +22,8 @@
   "local_tests_passed": 151,
   "application_schema_version": 4,
   "observed_human_review": false,
-  "source_workbench": "pending",
+  "source_workbench": "implemented_with_automated_actual_browser_checks",
   "buyer_acceptance_and_release": "pending",
-  "public_inspection": "gated"
+  "public_inspection": "gated",
+  "source_workbench_evidence": "WORKBENCH_STATUS.json"
 }

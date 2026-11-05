@@ -720,6 +720,9 @@ function Editor({
               {copy("request.inspect")}
             </button>
             <p className="help">{copy("request.inspectPending")}</p>
+            {saved ? <Link className="text-button" to={`/requests/${saved.id}/evidence${historical ? `?version=${saved.version}` : ""}`}>
+              {copy("review.open")}
+            </Link> : null}
           </div>
           <div className="margin-note">
             <FileText size={20} aria-hidden />

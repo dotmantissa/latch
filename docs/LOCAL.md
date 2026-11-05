@@ -5,13 +5,14 @@ inspect saved version history and archive it. All saved state comes from the sup
 Neon Postgres database. The app starts with an empty request list and no admitted suppliers.
 Light, Dark and System appearance follow the provided brand tokens.
 
-The public supplier workflow, field review, approval, source recheck, release and export
-remain pending. Inspect offers is disabled. Its API returns WORKER_UNAVAILABLE without
+The public supplier inspection workflow, approval, source recheck, release and export
+remain pending. Individual field review is available for stored extracted evidence.
+Inspect offers is disabled. Its API returns WORKER_UNAVAILABLE without
 starting a job or creating a result. Vultr inference and the dedicated worker are now
 connected and have passed the [infrastructure checks](evidence/WORKER_STATUS.json).
 Private durable capture, grounded extraction and [sanitized evidence delivery](EVIDENCE.md)
 are implemented and verified separately. Actual supplier compatibility and the enabled
-inspection and review workflow remain separate work.
+inspection and observed human review remain separate work.
 
 ## Start the workspace
 

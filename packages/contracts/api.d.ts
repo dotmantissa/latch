@@ -796,6 +796,10 @@ export interface components {
             request_version: number;
             /** Current */
             current: boolean;
+            /** Review Allowed */
+            review_allowed: boolean;
+            /** Review Blocker */
+            review_blocker: ("packet_changed" | "inspection_active" | "profile_unavailable") | null;
             /** Review Version */
             review_version: number;
             /** Review Set Hash */

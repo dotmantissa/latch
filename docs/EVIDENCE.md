@@ -52,8 +52,8 @@ Authenticated routes:
 
 Captures from running, failed or abandoned job fences cannot publish files. These
 routes provide evidence infrastructure; [individual review commands](REVIEWS.md) are
-implemented, while public supplier inspection remains gated and the product review
-workbench is pending. Successful capture means collected evidence,
+implemented with the individual source review interface. Public supplier inspection
+remains gated. Successful capture means collected evidence,
 not complete purchasing terms, buyer review, approval or release.
 
 The actual source-only check creates an isolated Neon schema, captures the real public

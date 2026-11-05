@@ -3,11 +3,13 @@
 
 import argparse
 import hashlib
+import importlib
 import json
 import secrets
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from uuid import uuid4
 
@@ -25,7 +27,7 @@ from services.artifacts.store import ArtifactStore
 from services.common.config import Settings
 from services.common.source_policy import SourceProfile
 from services.common.task_contracts import TaskCommand, TaskRef
-from services.domain.contracts import RequestItem
+from services.domain.contracts import RequestInput, RequestItem
 from services.domain.extraction import unreviewed_offer
 from services.domain.reviews import ReviewInput
 from services.runner.extraction import extract
@@ -44,7 +46,23 @@ def main():
         action="store_true",
         help="Automated review protocol assertions, not actual human acceptance",
     )
+    parser.add_argument(
+        "--browser-review",
+        action="store_true",
+        help="Real browser review assertions on genuine evidence, not human buyer acceptance",
+    )
+    parser.add_argument(
+        "--browser-retry",
+        action="store_true",
+        help="Keep the isolated fixture for up to ten minutes between local browser repairs",
+    )
     args = parser.parse_args()
+    if args.browser_retry and not args.browser_review:
+        parser.error("Browser retries require --browser-review")
+    if args.review_commands and args.browser_review:
+        parser.error(
+            "Run protocol and browser checks separately; both mutate isolated review state"
+        )
     DIRECTORY.mkdir(mode=0o700, exist_ok=True)
     settings = AppSettings.from_environment().model_copy(
         update={
@@ -83,6 +101,28 @@ def main():
             public_specification="Ubiquiti Access Point U6 Plus",
             required_units=1,
         )
+        snapshot = {"scope": "public_source_evidence_boundary_research"}
+        if args.browser_review:
+            # Explicit UI assertion constraints, never a real buyer's budget/deadline/consent.
+            deadline = (datetime.now(UTC) + timedelta(days=7)).replace(second=0, microsecond=0)
+            snapshot = RequestInput(
+                name="Supplier evidence UI assertion",
+                currency="USD",
+                budget="1.00",
+                required_by=deadline,
+                timezone="UTC",
+                required_by_local=deadline.strftime("%Y-%m-%dT%H:%M"),
+                delivery_basis="Automated UI assertion only; no buyer requirement or acceptance",
+                items=[item],
+                sources=[
+                    {
+                        "label": "U6 Plus public source research",
+                        "url": public_url,
+                        "profile_id": profile.id,
+                        "profile_version": profile.version,
+                    }
+                ],
+            ).snapshot()
         with db() as c:
             owner = provision_user(c, "evidence_research", "Public source research", password)
             other = provision_user(c, "evidence_other", "Ownership boundary assertion", password)
@@ -105,7 +145,7 @@ def main():
                 "INSERT INTO request_versions VALUES(%s,1,%s,'research',1)",
                 (
                     rid,
-                    Jsonb({"scope": "public_source_evidence_boundary_research"}),
+                    Jsonb(snapshot),
                 ),
             )
             c.execute(
@@ -476,6 +516,34 @@ def main():
                     ).status_code
                     == 404
                 )
+        browser_protocol = None
+        if args.browser_review:
+            from scripts import check_review_browser
+
+            while True:
+                try:
+                    browser_protocol = importlib.reload(check_review_browser).check_browser(
+                        settings, rid, password
+                    )
+                    break
+                except Exception as error:
+                    if not args.browser_retry:
+                        raise
+                    print(str(error).replace(password, "[redacted]"), flush=True)
+                    print(
+                        "Browser check failed; isolated fixture waits for local retry marker.",
+                        flush=True,
+                    )
+                    retry = Path("var/review-browser/retry")
+                    retry.unlink(missing_ok=True)
+                    started = time.monotonic()
+                    while not retry.exists() and time.monotonic() - started < 600:
+                        time.sleep(0.5)
+                    if not retry.exists():
+                        raise RuntimeError(
+                            "Browser retry deadline expired; fixture cleaned"
+                        ) from None
+                    retry.unlink()
         report = {
             "scope": "actual_public_source_evidence_boundary_in_isolated_schema",
             "status": "passed",
@@ -498,6 +566,7 @@ def main():
             "corrupted_file_unavailable": True,
             "buyer_acceptance_and_release": "pending",
             "review_protocol": protocol,
+            "browser_review_protocol": browser_protocol,
         }
         (DIRECTORY / "result.json").write_text(json.dumps(report, indent=2) + "\n")
         print(json.dumps(report, indent=2), flush=True)

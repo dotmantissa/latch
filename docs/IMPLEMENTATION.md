@@ -52,7 +52,8 @@ Immutable captures/proposals, isolated PNG sanitization, deterministic fingerpri
 ownership-checked artifact routes are implemented; see [evidence boundary](EVIDENCE.md).
 Individual owner-attributed confirm/correct/dispute records, revision preconditions,
 history and derived basket checks are implemented; see [review API](REVIEWS.md).
-Supplier image correspondence, the workbench and observed human review remain pending.
+The API-backed individual source review interface is implemented. Supplier image
+correspondence and observed human review remain pending.
 The runner persists
 sanitized captures; connecting inference to its full comparison workflow is still pending.
 

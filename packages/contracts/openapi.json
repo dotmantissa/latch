@@ -2305,6 +2305,26 @@
             "type": "boolean",
             "title": "Current"
           },
+          "review_allowed": {
+            "type": "boolean",
+            "title": "Review Allowed"
+          },
+          "review_blocker": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "packet_changed",
+                  "inspection_active",
+                  "profile_unavailable"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Blocker"
+          },
           "review_version": {
             "type": "integer",
             "title": "Review Version"
@@ -2347,6 +2367,8 @@
           "request_id",
           "request_version",
           "current",
+          "review_allowed",
+          "review_blocker",
           "review_version",
           "review_set_hash",
           "checked_fields",
