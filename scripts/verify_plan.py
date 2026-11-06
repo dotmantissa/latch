@@ -71,11 +71,13 @@ def contrast(a,b):
 contrast_results = {}
 for name, theme in tokens['themes'].items():
     pairs = []
-    for fg in ['text','muted','accent','success','warning','danger','info']:
+    for fg in ['text','muted','accentForeground','success','warning','danger','info']:
         for bg in ['canvas','surface','subtle']:
             pairs.append((fg,bg,4.5))
     pairs += [('accentText','accent',4.5),('accentText','accentHover',4.5)]
     pairs += [('controlBorder',bg,3) for bg in ['canvas','surface','subtle']]
+    pairs += [('focus',bg,3) for bg in ['canvas','surface','subtle','accentWash']]
+    pairs += [('text','accentWash',4.5),('accentForeground','accentWash',4.5)]
     result = {}
     for fg,bg,minimum in pairs:
         ratio = contrast(theme[fg],theme[bg]);result[f'{fg}/{bg}'] = round(ratio,2)

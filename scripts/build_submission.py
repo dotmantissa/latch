@@ -12,10 +12,10 @@ from reportlab.pdfgen import canvas
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs/submission"
-STONE = "#F4F0E8"
-INK = "#2C2825"
-RED = "#7A2838"
-MUTED = "#61584F"
+STONE = "#171717"
+INK = "#E9E9E9"
+RED = "#FF9D9C"
+MUTED = "#BFBFBF"
 
 
 def mark(draw, x, y, scale, color):

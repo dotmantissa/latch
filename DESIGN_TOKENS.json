@@ -2,38 +2,42 @@
   "seed": 1793714516810191212,
   "themes": {
     "light": {
-      "canvas": "#F6F2EB",
-      "surface": "#FFFCF7",
-      "subtle": "#EEE8DE",
-      "text": "#24201F",
-      "muted": "#665E5A",
-      "divider": "#D9D0C4",
-      "controlBorder": "#8C8179",
-      "accent": "#742F3A",
-      "accentHover": "#5B202B",
-      "accentText": "#FFFCF7",
-      "accentWash": "#F2E3E5",
-      "success": "#285E48",
-      "warning": "#80551C",
-      "danger": "#9C302C",
-      "info": "#355C7A"
+      "canvas": "#BFBFBF",
+      "surface": "#E9E9E9",
+      "subtle": "#D4D4D4",
+      "text": "#171717",
+      "muted": "#454545",
+      "divider": "#9A9A9A",
+      "controlBorder": "#626262",
+      "accent": "#FF9D9C",
+      "accentHover": "#FFB2B1",
+      "accentText": "#171717",
+      "accentForeground": "#171717",
+      "accentWash": "#F6CECD",
+      "focus": "#171717",
+      "success": "#171717",
+      "warning": "#7C3534",
+      "danger": "#7C3534",
+      "info": "#171717"
     },
     "dark": {
-      "canvas": "#181618",
-      "surface": "#211E20",
-      "subtle": "#2B2528",
-      "text": "#F3EEE8",
-      "muted": "#BDB0AA",
-      "divider": "#4C4147",
-      "controlBorder": "#93838A",
-      "accent": "#E5A4AD",
-      "accentHover": "#F0BBC2",
-      "accentText": "#32151C",
-      "accentWash": "#3C252C",
-      "success": "#9ECBB6",
-      "warning": "#E4C38C",
-      "danger": "#FFB4AB",
-      "info": "#ACCAE4"
+      "canvas": "#171717",
+      "surface": "#222222",
+      "subtle": "#303030",
+      "text": "#E9E9E9",
+      "muted": "#BFBFBF",
+      "divider": "#484848",
+      "controlBorder": "#858585",
+      "accent": "#FF9D9C",
+      "accentHover": "#FFB2B1",
+      "accentText": "#171717",
+      "accentForeground": "#FF9D9C",
+      "accentWash": "#3A2929",
+      "focus": "#BFBFBF",
+      "success": "#BFBFBF",
+      "warning": "#FF9D9C",
+      "danger": "#FF9D9C",
+      "info": "#BFBFBF"
     }
   },
   "type": {
@@ -83,6 +87,14 @@
   },
   "focus": {
     "width_px": 2,
-    "offset_px": 2
+    "offset_px": 3
+  },
+  "palette": {
+    "source": "User supplied palette, 2026-11-06",
+    "colors": [
+      "#FF9D9C",
+      "#BFBFBF",
+      "#171717"
+    ]
   }
 }

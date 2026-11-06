@@ -1,26 +1,26 @@
 # Latch visual system and interaction specification
 
-This token plan was written before any frontend code or brand asset. Seed1793714516810191212 was drawn from the system timestamp. The independent draws are preserved in [DESIGN_ROLLS.json](../DESIGN_ROLLS.json). No generic axis was retained by default and no reroll was needed.
+This token plan was written before any frontend code or brand asset. Seed1793714516810191212 was drawn from the system timestamp. The independent draws are preserved in [DESIGN_ROLLS.json](../DESIGN_ROLLS.json). The original rolls remain as design history. The user supplied palette below supersedes the original palette roll on 6 November 2026.
 
 ## Five rolls and their justification
 
 | Axis | Roll | Decision | Reason tied to Latch |
 | --- | --- | --- | --- |
-| Palette | 3 of 6 | Oxblood and warm limestone | A restrained document palette gives an approval tool gravity without the usual blue SaaS theme. Warm paper keeps long source review comfortable. |
+| Palette | User override | Pink #FF9D9C, grey #BFBFBF and charcoal #171717 | Pink identifies actions, neutral surfaces frame source evidence, and charcoal keeps text readable. |
 | Layout | 5 of 5 | Wide document stage and compact request rail | Evidence needs width. The request list stays compact while source, comparison and action share the main reading stage. No marketing hero/card grid. |
 | Type | 2 of 5 | Manrope body with DM Serif Display for request names and grand totals | The grotesk keeps controls precise; the serif marks the consequential decision and gives the product an editorial voice. |
 | Motion | 1 of 3 | Response to action only | A review tool should explain the user's action, not move for decoration. Nothing animates on first page load or while idle. |
 | Structural device | 1 of 4 | A latch seam separating evidence from release | The single memorable element makes authority visible: reviewed terms meet a controlled final action. It is never a false claim that every quote is safe. |
 
-Short token plan: limestone#F6F2EB, paper#FFFCF7, ink#24201F, oxblood#742F3A. Dark canvas#181618, paper#211E20, ink#F3EEE8, accent#E5A4AD. Manrope14/16/18 for body/navigation, DM Serif Display28/36 for request titles and totals. Layout: a compact request rail sits beside a wide document workbench with source evidence and a quiet, persistent release margin.
+Short token plan: pink#FF9D9C, grey#BFBFBF, charcoal#171717. Light grey canvas and lighter document surfaces; dark charcoal canvas, grey text and pink accents. Manrope14/16/18 for body/navigation, DM Serif Display28/36 for request titles and totals. Layout: a compact request rail sits beside a wide document workbench with source evidence and a quiet, persistent release margin.
 
 Banned-pattern check: no centered hero with three features, all-caps tracked labels, emoji, em dash fragments, decorative arrow suffixes, decorative numbered markers, repeated soft-shadow cards, ambient motion or generic fade/slide entrances. The one expressive device is the latch seam. Shadows are used only to establish an actual overlay layer. The layout is a working document, not a collection of cards.
 
 ## Tokens
 
-Authoritative machine-readable values: [DESIGN_TOKENS.json](../DESIGN_TOKENS.json). Light: canvas#F6F2EB, surface#FFFCF7, subtle#EEE8DE, text#24201F, muted#665E5A, divider#D9D0C4, controlBorder#8C8179, accent#742F3A, accentHover#5B202B, accentText#FFFCF7, accentWash#F2E3E5, success#285E48, warning#80551C, danger#9C302C, info#355C7A. Dark: canvas#181618, surface#211E20, subtle#2B2528, text#F3EEE8, muted#BDB0AA, divider#4C4147, controlBorder#93838A, accent#E5A4AD, accentHover#F0BBC2, accentText#32151C, accentWash#3C252C, success#9ECBB6, warning#E4C38C, danger#FFB4AB, info#ACCAE4.
+Authoritative machine-readable values: [DESIGN_TOKENS.json](../DESIGN_TOKENS.json). The base palette is pink#FF9D9C, grey#BFBFBF and charcoal#171717, with neutral and pink tints for surfaces, hover and selected states. Light theme uses grey canvas, lighter document paper and charcoal text. Dark theme uses charcoal canvas, neutral paper, grey secondary text and pink accents. Primary buttons use pink with charcoal labels in both themes. Light theme links and selected text use charcoal; dark theme uses pink. Status text retains explicit labels/icons, with a darker pink shade for light theme errors.
 
-Functional text must meet4.5:1 and essential control/focus boundaries3:1. Decorative dividers are not control boundaries. Never use an accent wash as body text. Each status pairs text/icon with color. Focus is a2 px accent outline with2 px offset and sufficient contrast on each surface. Use native focus-visible behavior. Source: [WCAG contrast](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html).
+Functional text must meet4.5:1 and essential control/focus boundaries3:1. Decorative dividers are not control boundaries. Separate accentForeground and focus tokens keep pale pink from becoming low contrast text or outlines on light backgrounds. Focus is a2 px outline with3 px offset. Selected text must remain readable on accentWash. Source: [WCAG contrast](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html).
 
 Spacing scale4,8,12,16,20,24,32,40,48,64. Controls have6 px radius; source paper2 px; modal10 px; pill status 999 px only where a status is actually a compact badge. No universal rounded box. Main row height56 px with24 px icons/44 px targets,16 px cell padding, minimum line height1.5. Reference footnotes13 px minimum. Dense tables retain14 px type and tabular numerals, never10 px.
 

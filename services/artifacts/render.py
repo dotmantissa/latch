@@ -50,7 +50,7 @@ def main():
             if y < 60:
                 pdf.showPage()
                 y = 795
-            pdf.setFillColorRGB(0.24, 0.09, 0.12)
+            pdf.setFillColorRGB(23 / 255, 23 / 255, 23 / 255)
             font = "LatchHeading" if heading else "Latch"
             if any(ord(char) not in metrics.getFont(font).face.charToGlyph for char in part):
                 raise ValueError("RECEIPT_FONT_UNSUPPORTED")
@@ -62,7 +62,7 @@ def main():
     pdf.saveState()
     pdf.translate(36, 817)
     pdf.scale(0.5, -0.5)
-    pdf.setFillColorRGB(116 / 255, 47 / 255, 58 / 255)
+    pdf.setFillColorRGB(23 / 255, 23 / 255, 23 / 255)
     for points in (
         ((12, 12), (22, 12), (22, 44), (36, 44), (36, 54), (12, 54)),
         ((44, 18), (56, 18), (56, 42), (44, 42), (44, 34), (48, 34), (48, 26), (44, 26)),

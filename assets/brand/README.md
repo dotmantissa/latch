@@ -2,6 +2,8 @@
 
 The mark combines the letter L with a horizontal bolt meeting a keeper. It represents a reviewed request reaching a controlled release point. It is an original vector construction, not a shield, padlock emoji or stock icon.
 
+The current user palette is pink#FF9D9C, grey#BFBFBF and charcoal#171717. Light wordmarks use charcoal, dark wordmarks use pink, and tab/install icons use a charcoal mark on pink.
+
 Use [mark-light.svg](mark-light.svg) on light surfaces and [mark-dark.svg](mark-dark.svg) on dark surfaces. [mark-mono.svg](mark-mono.svg) inherits currentColor when embedded as an inline vector. Do not expect currentColor in a separately loaded image to inherit the parent page color.
 
 The outlined [wordmark-light.svg](wordmark-light.svg) and [wordmark-dark.svg](wordmark-dark.svg) render without font installation. Their lettering comes from licensed Manrope at weight 600. Font files, licenses and source hashes are retained under assets/fonts and [ASSET_SOURCES.json](../ASSET_SOURCES.json).

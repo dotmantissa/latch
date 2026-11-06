@@ -26,5 +26,5 @@
     }
   ],
   "logo": "Original native SVG geometry and outlined Manrope wordmark authored for Latch; no image-generation service used.",
-  "render_tooling": "Temporary Pillow/CairoSVG/fonttools under /tmp/latch-design-tools; not an app dependency."
+  "render_tooling": "Native SVG assets rasterized with local Chromium/Playwright; Pillow ICO encoding. No remote image service or app dependency added."
 }
