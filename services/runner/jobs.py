@@ -12,15 +12,15 @@ from uuid import uuid4
 
 from services.api.settings import AppSettings
 from services.artifacts.packet import prepare
-from services.artifacts.store import ArtifactStore
 from services.common.source_policy import SourceProfile
 from services.common.task_contracts import TaskCommand, TaskRef
 from services.domain.contracts import RequestItem
 from services.runner.correspondence import correspond
 from services.runner.extraction import extract
+from services.runner.planning import plan_inspection
 from services.runner.supervisor import SupervisorClient, SupervisorRejected, SupervisorUnavailable
 from services.runner.vultr import ProviderFailure, VultrClient
-from services.storage import evidence, jobs, releases
+from services.storage import evidence, inspections, jobs, releases
 from services.storage.database import database
 
 
@@ -38,7 +38,7 @@ class Runner:
         if artifacts.is_symlink() or artifacts.stat().st_mode & 0o077:
             raise ValueError("PRIVATE_QUARANTINE_REQUIRED")
         self.stop = threading.Event()
-        self.evidence = ArtifactStore(settings.evidence_dir)
+        self.evidence = settings.artifact_store()
 
     def db(self):
         return database(self.url, schema=self.schema)
@@ -110,11 +110,22 @@ class Runner:
             remaining = max(0, (job["deadline_at"] - jobs.clock(c)) / 1000)
         deadline = time.monotonic() + remaining
         succeeded = bool(sources)
+        extraction_calls_remaining = 8
+        failure_code = "TASK_FAILED"
         try:
             items = [RequestItem(specification=r["public_specification"], **r) for r in rows]
             if not 1 <= len(items) <= 3 or not 1 <= len(sources) <= 3:
                 raise ValueError("INSPECTION_INPUT_SET_INVALID")
-            for source in sources:
+            if job["kind"] == "inspect":
+                first = SourceProfile.model_validate(sources[0]["profile_json"])
+                plan, usage = plan_inspection(
+                    VultrClient(self.settings, output_token_limit=4096), items, sources,
+                    deadline=deadline, checkpoint=lambda: self.checkpoint(job, first),
+                )
+                with self.db() as c:
+                    inspections.save_plan(c, job, self.holder, plan, usage)
+                sources = [next(s for s in sources if s["id"] == sid) for sid in plan.source_order]
+            for source_index, source in enumerate(sources):
                 profile = SourceProfile.model_validate(source["profile_json"])
                 if not source["active"] or source["expires_at"] <= int(time.time() * 1000):
                     raise ValueError("PROFILE_EXPIRED")
@@ -184,7 +195,10 @@ class Runner:
                                 deadline=deadline,
                                 on_invalid=self.on_invalid,
                                 checkpoint=lambda profile=profile: self.checkpoint(job, profile),
+                                max_calls=min(3, extraction_calls_remaining
+                                              - (len(sources) - source_index - 1)),
                             )
+                            extraction_calls_remaining -= usage["calls"]
                             self.checkpoint(job, profile)
                             with self.db() as c:
                                 evidence.save_extraction(
@@ -217,8 +231,16 @@ class Runner:
             ):
                 code = "INFERENCE_FAILED"
             print(json.dumps({"event": "inference_failed", "code": code}), flush=True)
+            failure_code = code
             succeeded = False
-        except (SupervisorUnavailable, ValueError, OSError):
+        except (SupervisorUnavailable, ValueError, OSError) as error:
+            code = str(error)
+            if len(code) > 100 or not code or any(
+                ch not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789" for ch in code
+            ):
+                code = "TASK_FAILED"
+            failure_code = code
+            print(json.dumps({"event": "inspection_failed", "code": code}), flush=True)
             succeeded = False
         with self.db() as c:
             pending = c.execute(
@@ -228,7 +250,8 @@ class Runner:
             self.cleanup(job, pending)
         try:
             with self.db() as c:
-                jobs.finish(c, job["id"], job["fence"], self.holder, success=succeeded)
+                jobs.finish(c, job["id"], job["fence"], self.holder, success=succeeded,
+                            failure_code=failure_code)
         except jobs.FenceLost as error:
             self.client.revoke(ref)
             print(json.dumps({"event": "publication_fenced", "code": str(error)}), flush=True)
@@ -237,6 +260,8 @@ class Runner:
                 jobs.finish(c, job["id"], job["fence"], self.holder, success=False)
 
     def loop(self):
+        monitor = threading.Thread(target=self.monitor, daemon=True)
+        monitor.start()
         while not self.stop.is_set():
             try:
                 self.reconcile()
@@ -255,6 +280,46 @@ class Runner:
                     json.dumps({"event": "runner_retry", "code": "RUNNER_UNAVAILABLE"}), flush=True
                 )
             self.stop.wait(2)
+        monitor.join(timeout=20)
+
+    def monitor(self):
+        import httpx
+
+        from services.common.config import read_secret
+
+        checked = float("-inf")
+        provider_ready = False
+        while not self.stop.is_set():
+            available, profiles = False, []
+            try:
+                if time.monotonic()-checked >= 300:
+                    provider_ready = False
+                    if self.settings.inference_key_file and self.settings.model_id:
+                        with httpx.Client(timeout=10, trust_env=False) as client:
+                            response = client.get(
+                                self.settings.inference_base_url+"/models",
+                                headers={"Authorization": "Bearer "+read_secret(
+                                    self.settings.inference_key_file)},
+                            )
+                        if response.status_code == 200 and len(response.content) <= 1024*1024:
+                            provider_ready = any(p.get("id") == self.settings.model_id
+                                                 for p in response.json().get("data", []))
+                    checked = time.monotonic()
+                profiles = self.client.health()
+                available = provider_ready
+            except Exception:
+                pass
+            try:
+                with self.db() as c:
+                    inspections.heartbeat(c, self.holder, available, profiles)
+            except Exception:
+                pass
+            self.stop.wait(10)
+        try:
+            with self.db() as c:
+                inspections.heartbeat(c, self.holder, False, [])
+        except Exception:
+            pass
 
 
 def main():

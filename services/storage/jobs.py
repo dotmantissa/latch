@@ -216,7 +216,7 @@ def all_clean(conn, row) -> bool:
     ).fetchone()
 
 
-def finish(conn, job_id, fence, holder, *, success: bool):
+def finish(conn, job_id, fence, holder, *, success: bool, failure_code="TASK_FAILED"):
     # Publication gets a fresh lease window while retaining the original hard deadline.
     row = (heartbeat if success else leased)(conn, job_id, fence, holder)
     if not all_clean(conn, row):
@@ -252,7 +252,7 @@ def finish(conn, job_id, fence, holder, *, success: bool):
             raise FenceLost("JOB_DEADLINE_EXPIRED")
         if at >= profiles_valid_until:
             raise ValueError("EVIDENCE_PROFILE_NO_LONGER_ACTIVE")
-    return end(conn, row, "succeeded" if success else "failed", None if success else "TASK_FAILED")
+    return end(conn, row, "succeeded" if success else "failed", None if success else failure_code)
 
 
 def expired(conn):

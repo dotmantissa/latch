@@ -5,15 +5,9 @@ inspect saved version history and archive it. All saved state comes from the sup
 Neon Postgres database. The app starts with an empty request list and no admitted suppliers.
 Light, Dark and System appearance follow the provided brand tokens.
 
-Public supplier inspection remains gated. Individual evidence review, comparisons,
-approval, fresh recheck, internal receipts and exports are available for qualified stored
-evidence. See [workflow scope](WORKFLOW.md) and [encrypted recovery](RECOVERY.md).
-Inspect offers is disabled. Its API returns WORKER_UNAVAILABLE without
-starting a job or creating a result. Vultr inference and the dedicated worker are now
-connected and have passed the [infrastructure checks](evidence/WORKER_STATUS.json).
-Private durable capture, grounded extraction and [sanitized evidence delivery](EVIDENCE.md)
-are implemented and verified separately. Actual supplier compatibility and the enabled
-inspection and observed human review remain separate work.
+Inspection is implemented and can be enabled by an operator with LATCH_ENABLE_INSPECTIONS=true, a working private supervisor channel and Vultr inference. The default remains disabled on a fresh checkout. Admitted source profiles must match the worker hash, be active and unexpired. Users acknowledge the public capture/inference disclosure before queue admission. Status, cancellation and reload recovery use durable jobs. See [deployment](DEPLOYMENT.md).
+
+Individual review, comparison, approval, recheck and internal receipt workflows preserve unknown values. A supported page need not have a complete quote; incomplete evidence blocks approval.
 
 ## Start the workspace
 
@@ -31,8 +25,8 @@ even for local development. The script builds the UI before starting one API pro
 Stop the foreground process with Ctrl+C.
 
 This checkout already has the supplied connection in private/database-url, with mode 0600,
-and the latch schema has been migrated through version10 after an encrypted recovery
-point and isolated restore verification. Its application inventory remains empty.
+and the latch schema has been migrated through version11 after an encrypted recovery
+point and isolated restore verification. The public deployment now admits a reviewed source and creates isolated demonstration workspaces.
 A fresh checkout needs its own private
 connection file. LATCH_DATABASE_URL_FILE points at that file, and LATCH_PUBLIC_ORIGIN must
 match the HTTPS origin used by the browser. No connection string belongs in Vite variables,
@@ -51,8 +45,7 @@ production cutover and provider point in time restore still need operator valida
 ## Saved request behavior
 
 Drafts allow one to three required items and zero to three admitted supplier pages. Each
-item has private and public specification fields. No specification is sent to a provider
-by the current workflow. Budget entry uses USD decimal strings and exact integer cents.
+item has private and public specification fields. Only public descriptions are sent to Vultr after the user acknowledges the disclosure. Budget entry uses USD decimal strings and exact integer cents.
 Deadlines store the local entered time, IANA timezone and matching UTC instant. Ambiguous
 clock changes require another explicit local time.
 

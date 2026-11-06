@@ -17,7 +17,13 @@ class ArtifactStore:
     minimum = 33
     limit = MAX_BYTES
 
-    def __init__(self, root: Path):
+    def __init__(self, root: Path, *, group_id: int | None = None, owner_ids: tuple[int, ...] = ()):
+        self.group_id = group_id
+        self.owner_ids = frozenset((*owner_ids, os.getuid()))
+        if group_id is not None and (
+            group_id not in (*os.getgroups(), os.getgid()) or not owner_ids
+        ):
+            raise ArtifactRejected("ARTIFACT_TRUSTED_GROUP_REQUIRED")
         absolute = root.absolute()
         # Check each ancestor before traversing it. resolve() would follow an untrusted link.
         if ".." in absolute.parts:
@@ -29,18 +35,31 @@ class ArtifactStore:
                 mode = current.lstat().st_mode
             except FileNotFoundError:
                 current.mkdir(mode=0o700)
+                if current == absolute and group_id is not None:
+                    os.chown(current, -1, group_id)
+                    os.chmod(current, 0o2770)
                 mode = current.lstat().st_mode
             if not stat.S_ISDIR(mode):
                 raise ArtifactRejected("ARTIFACT_DIRECTORY_REQUIRED")
         fd = os.open(absolute, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
         try:
             info = os.fstat(fd)
-            if info.st_uid != os.getuid() or info.st_mode & 0o077:
+            if not self.private(info, directory=True):
                 raise ArtifactRejected("ARTIFACT_PRIVATE_DIRECTORY_REQUIRED")
         except BaseException:
             os.close(fd)
             raise
         self.fd = fd
+
+    def private(self, info, *, directory=False):
+        if self.group_id is None:
+            return info.st_uid == os.getuid() and not info.st_mode & 0o077
+        return (
+            info.st_uid in self.owner_ids
+            and info.st_gid == self.group_id
+            and not info.st_mode & (0o007 if directory else 0o037)
+            and (not directory or bool(info.st_mode & stat.S_ISGID))
+        )
 
     def close(self):
         if self.fd is not None:
@@ -71,8 +90,7 @@ class ArtifactStore:
                 if (
                     not stat.S_ISREG(info.st_mode)
                     or info.st_nlink != 1
-                    or info.st_uid != os.getuid()
-                    or info.st_mode & 0o077
+                    or not self.private(info)
                     or not self.minimum <= info.st_size <= self.limit
                     or (size is not None and info.st_size != size)
                 ):
@@ -107,6 +125,9 @@ class ArtifactStore:
             dir_fd=self.fd,
         )
         try:
+            if self.group_id is not None:
+                os.fchown(fd, -1, self.group_id)
+                os.fchmod(fd, 0o640)
             with os.fdopen(fd, "wb") as output:
                 output.write(raster.data)
                 output.flush()

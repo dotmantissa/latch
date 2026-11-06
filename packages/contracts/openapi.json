@@ -93,6 +93,24 @@
         }
       }
     },
+    "/api/v1/auth/demo": {
+      "post": {
+        "summary": "Demo",
+        "operationId": "demo_api_v1_auth_demo_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SessionView_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/reauth": {
       "post": {
         "summary": "Reauth",
@@ -741,6 +759,46 @@
         }
       }
     },
+    "/api/v1/requests/{request_id}/inspection": {
+      "get": {
+        "summary": "Inspection Status",
+        "operationId": "inspection_status_api_v1_requests__request_id__inspection_get",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_InspectionView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/requests/{request_id}/inspections": {
       "post": {
         "summary": "Inspect",
@@ -762,17 +820,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/VersionInput"
+                "$ref": "#/components/schemas/InspectInput"
               }
             }
           }
         },
         "responses": {
-          "200": {
+          "202": {
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_JobView_"
+                }
               }
             }
           },
@@ -2192,6 +2252,29 @@
         ],
         "title": "Envelope[DecisionView]"
       },
+      "Envelope_InspectionView_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/InspectionView"
+          },
+          "resource_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[InspectionView]"
+      },
       "Envelope_JobView_": {
         "properties": {
           "data": {
@@ -2739,6 +2822,68 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "InspectInput": {
+        "properties": {
+          "current_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Current Version"
+          },
+          "public_scope_seen": {
+            "type": "boolean",
+            "title": "Public Scope Seen"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "current_version",
+          "public_scope_seen"
+        ],
+        "title": "InspectInput"
+      },
+      "InspectionView": {
+        "properties": {
+          "request_version": {
+            "type": "integer",
+            "title": "Request Version"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "job": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JobView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request_version",
+          "enabled",
+          "reason",
+          "job"
+        ],
+        "title": "InspectionView"
       },
       "JobView": {
         "properties": {

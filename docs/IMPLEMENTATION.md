@@ -1,3 +1,5 @@
+> Current deployment and inspection status supersede earlier public-gating notes below; see [deployment](DEPLOYMENT.md) and [submission](submission/ENTRY.md).
+
 # Implementation roadmap and work packages
 
 This roadmap defines finish gates. The provider independent foundation, identity and saved worksheet are implemented; their checks are described in [LOCAL.md](LOCAL.md) and [worksheet evidence](evidence/WORKSHEET_STATUS.json). Private comparisons, approval, commit-guarded release, exports and encrypted isolated

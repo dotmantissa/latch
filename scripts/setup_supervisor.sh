@@ -59,6 +59,10 @@ AllowTcpForwarding local
 PermitOpen 127.0.0.1:9443
 PermitListen none
 SSH
+# Preserve the separately provisioned, restricted production control channel.
+if id latch-tunnel >/dev/null 2>&1; then
+  sed -i 's/^AllowUsers linuxuser$/AllowUsers linuxuser latch-tunnel/' /etc/ssh/sshd_config.d/00-latch-worker.conf
+fi
 rm -f /etc/ssh/sshd_config.d/00-latch.conf
 sshd -t
 systemctl reload ssh

@@ -35,6 +35,36 @@ class SupervisorClient:
     def close(self):
         self.client.close()
 
+    def health(self):
+        try:
+            with self.client.stream("GET", "/v1/health") as response:
+                data = bytearray()
+                for chunk in response.iter_bytes():
+                    if len(data) + len(chunk) > 16384:
+                        raise SupervisorUnavailable("SUPERVISOR_RESPONSE_LIMIT")
+                    data.extend(chunk)
+                value = json.loads(data)
+                if response.status_code != 200 or value.get("status") != "ready":
+                    raise SupervisorUnavailable("SUPERVISOR_UNAVAILABLE")
+                profiles = value["profiles"]
+                if not isinstance(profiles, list) or not 1 <= len(profiles) <= 10:
+                    raise SupervisorUnavailable("SUPERVISOR_PROFILE_INVALID")
+                for p in profiles:
+                    if (
+                        set(p) != {"id", "version", "hash"}
+                        or not isinstance(p["id"], str)
+                        or not 1 <= len(p["id"]) <= 100
+                        or type(p["version"]) is not int
+                        or p["version"] < 1
+                        or not isinstance(p["hash"], str)
+                        or len(p["hash"]) != 64
+                        or any(c not in "0123456789abcdef" for c in p["hash"])
+                    ):
+                        raise SupervisorUnavailable("SUPERVISOR_PROFILE_INVALID")
+                return profiles
+        except (httpx.HTTPError, ValueError, KeyError, TypeError):
+            raise SupervisorUnavailable("SUPERVISOR_UNAVAILABLE") from None
+
     def request(self, path, command):
         try:
             with self.client.stream("POST", path, json=command.model_dump(mode="json")) as response:

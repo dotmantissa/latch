@@ -33,6 +33,8 @@ TABLES = (
     "jobs",
     "runner_slot",
     "job_attempts",
+    "runner_health",
+    "inspection_plans",
     "job_tasks",
     "source_captures",
     "captured_pages",
@@ -53,6 +55,8 @@ TABLES = (
 
 
 INTRODUCED = {
+    "runner_health": 11,
+    "inspection_plans": 11,
     "source_correspondence": 5,
     "comparisons": 6,
     "selections": 6,
@@ -151,7 +155,7 @@ def snapshot(settings, secret):
                     rows.append(row["value"])
             tables[table] = sorted(rows, key=canonical_json)
         files = {}
-        with ArtifactStore(settings.evidence_dir) as images:
+        with settings.artifact_store() as images:
             for page in tables["captured_pages"]:
                 digest = page["sanitized_png_hash"]
                 if "evidence/" + digest in files:
@@ -165,7 +169,7 @@ def snapshot(settings, secret):
                     "bytes": len(data),
                     "data": base64.b64encode(data).decode(),
                 }
-        with BinaryStore(settings.evidence_dir.parent / "exports") as exported:
+        with settings.artifact_store(binary=True) as exported:
             for output in tables.get("receipt_exports", []):
                 digest = output["content_hash"]
                 if "exports/" + digest in files:
@@ -251,6 +255,7 @@ def restore(settings, value, secret, *, evidence_dir):
         # All prior login cookies are revoked after recovery. Worker task fences stay recorded
         # for explicit runner reconciliation; restoration never claims remote cleanup.
         c.execute("UPDATE sessions SET revoked_at=COALESCE(revoked_at,%s)", (jobs.clock(c),))
+        c.execute("UPDATE runner_health SET available=false")
         for table, col in (("requests", "seq"), ("events", "id"), ("approvals", "generation")):
             c.execute(
                 sql.SQL(

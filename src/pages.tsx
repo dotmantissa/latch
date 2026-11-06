@@ -11,6 +11,7 @@ import {
   Outlet,
   useLocation,
   useOutletContext,
+  useNavigate,
 } from "react-router";
 import {
   api,
@@ -20,6 +21,8 @@ import {
   timestamp,
   type RequestPage,
   type Session,
+  type SavedRequest,
+  type Profile,
 } from "./api";
 import { Brand, ErrorNotice, ThemeControl } from "./ui";
 
@@ -29,6 +32,12 @@ function Login({ onSignedIn }: { onSignedIn: (session: Session) => void }) {
   const [error, setError] = useState<unknown>();
   const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  async function demo() {
+    setBusy(true); setError(undefined);
+    try { onSignedIn(await api<Session>("/auth/demo", { method: "POST", body: "{}" })); }
+    catch (failure) { setError(failure); }
+    finally { setBusy(false); }
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -94,6 +103,8 @@ function Login({ onSignedIn }: { onSignedIn: (session: Session) => void }) {
           </button>
         </form>
         <p className="muted small">{copy("auth.provision")}</p>
+        <button className="primary" disabled={busy} onClick={() => void demo()}>{copy("demo.open")}</button>
+        <p className="help">{copy("demo.scope")}</p>
       </div>
       <ThemeControl />
     </main>
@@ -245,6 +256,31 @@ export function App() {
 
 export function RequestList() {
   const session = useSession();
+  const navigate = useNavigate();
+  const [demoError, setDemoError] = useState<unknown>();
+  const [demoBusy, setDemoBusy] = useState(false);
+  async function sourceDemo() {
+    setDemoBusy(true); setDemoError(undefined);
+    try {
+      const profiles = await api<Profile[]>("/source-profiles");
+      const profile = profiles.find(p => p.id === "ubiquiti_u6plus_research");
+      if (!profile) throw new ApiFailure(503, "SOURCE_PROFILE_UNAVAILABLE", "inspection.sourceRequired");
+      const deadline = new Date(Date.now() + 7 * 86400000);
+      deadline.setUTCSeconds(0, 0);
+      const saved = await api<SavedRequest>("/requests", {
+        method: "POST", headers: { "Idempotency-Key": crypto.randomUUID() },
+        body: JSON.stringify({ name: "U6+ public source demonstration", currency: "USD", budget: "200.00",
+          required_by: deadline.toISOString(), required_by_local: deadline.toISOString().slice(0,16),
+          timezone: "UTC", delivery_basis: "Demonstration only; destination and supplier delivery quote not supplied.",
+          items: [{ key: "u6_plus", specification: "Demonstration: inspect the Ubiquiti U6+ public offer; no purchase requested.",
+            public_specification: "Ubiquiti Access Point U6 Plus", required_units: 1 }],
+          sources: [{ label: "Ubiquiti U6+ public offer", url: profile.origin + profile.offer_paths[0],
+            profile_id: profile.id, profile_version: profile.version }] }),
+      });
+      navigate(`/requests/${saved.id}`);
+    } catch (failure) { setDemoError(failure); }
+    finally { setDemoBusy(false); }
+  }
   const query = useInfiniteQuery({
     queryKey: ["requests", session.user.id, "list"],
     initialPageParam: null as number | null,
@@ -269,6 +305,11 @@ export function RequestList() {
         </Link>
       </div>
       <ErrorNotice error={query.error} retry={() => void query.refetch()} />
+      <ErrorNotice error={demoError} />
+      <section className="notice neutral">
+        <button disabled={demoBusy} onClick={() => void sourceDemo()}>{copy("demo.source")}</button>
+        <p className="help">{copy("demo.sourceScope")}</p>
+      </section>
       {query.isPending ? (
         <p role="status">{copy("common.loading")}</p>
       ) : requests.length ? (
@@ -412,8 +453,7 @@ export function StatusPage() {
       <div className="section">
         <ErrorNotice error={status.error} retry={() => void status.refetch()} />
         {status.isPending ? <p role="status">{copy("common.loading")}</p>
-          : status.data ? <p>{copy("status.draft")}</p> : null}
-        <p className="muted">{copy("status.worker")}</p>
+          : status.data ? <><p>{copy("status.draft")}</p><p className="muted">{copy(status.data.status === "ready" ? "status.ready" : "status.worker")}</p></> : null}
         <Link to="/requests" className="text-button">
           {copy("common.return")}
         </Link>

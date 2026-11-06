@@ -29,6 +29,7 @@ from services.api.auth import (
     now_ms,
     session_row,
     session_view,
+    token_hash,
     verify_password,
 )
 from services.api.errors import ApiError
@@ -36,7 +37,6 @@ from services.api.settings import AppSettings
 from services.artifacts import exports
 from services.artifacts.contracts import CaptureView
 from services.artifacts.sanitize import POLICY_VERSION, ArtifactRejected, dimensions
-from services.artifacts.store import ArtifactStore, BinaryStore
 from services.common.config import read_secret
 from services.common.source_policy import StrictRecord
 from services.domain.contracts import (
@@ -58,9 +58,10 @@ from services.domain.decisions import (
     SelectionInput,
     SelectionView,
 )
+from services.domain.inspections import InspectInput, InspectionView
 from services.domain.releases import ReceiptView, ReleaseAttemptView, ReleaseInput
 from services.domain.reviews import ReviewInput
-from services.storage import decisions, evidence, jobs, releases, reviews
+from services.storage import decisions, evidence, inspections, jobs, releases, reviews
 from services.storage import requests as store
 from services.storage.database import database
 from services.storage.reviews import ReviewPage, ReviewView, SourceReviewView
@@ -126,8 +127,11 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app):
-        with database(url, schema=settings.database_schema):
-            pass
+        try:
+            with database(url, schema=settings.database_schema):
+                pass
+        except (psycopg.Error, RuntimeError):
+            raise RuntimeError("DATABASE_UNAVAILABLE") from None
         yield
 
     app = FastAPI(
@@ -255,9 +259,9 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
     @app.get("/health/ready")
     def ready():
         try:
-            with database(url, schema=settings.database_schema):
-                pass
-            return {"status": "degraded"}
+            with database(url, schema=settings.database_schema) as conn:
+                available = inspections.health(conn, settings.enable_inspections) is not None
+            return {"status": "ready" if available else "degraded"}
         except (psycopg.Error, RuntimeError):
             return JSONResponse({"status": "unavailable"}, status_code=503)
 
@@ -280,8 +284,6 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
             # Rotate an existing browser session, preserving other independent sessions.
             prior = request.cookies.get(COOKIE)
             if prior:
-                from services.api.auth import token_hash
-
                 conn.execute(
                     "UPDATE sessions SET revoked_at=%s WHERE token_hash=%s",
                     (now_ms(), token_hash(prior)),
@@ -295,6 +297,39 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
     def session(request: Request):
         with authorized(request) as (_, row):
             return Envelope(data=session_view(row, request.cookies[COOKIE], secret))
+
+    @app.post("/api/v1/auth/demo", response_model=Envelope[SessionView])
+    def demo(request: Request, response: Response):
+        if not settings.enable_demo:
+            raise ApiError(404, "NOT_FOUND", "error.notFound")
+        limiter.check(f"demo:{request.client.host}", limit=3, seconds=3600)
+        with database(url, schema=settings.database_schema) as conn:
+            conn.execute("SELECT pg_advisory_xact_lock(hashtext('latch-demo-admission'))")
+            if (
+                conn.execute(
+                    "SELECT count(*) AS n FROM users WHERE username LIKE 'demo_%'"
+                ).fetchone()["n"]
+                >= 64
+            ):
+                raise ApiError(429, "DEMO_LIMIT", "demo.limit")
+            user_id, at = uuid4(), now_ms()
+            # No shared password or authority to reauthenticate a demo account.
+            conn.execute(
+                "INSERT INTO users VALUES(%s,%s,'Demo reviewer',%s,true,%s,%s)",
+                (user_id, "demo_" + uuid4().hex, DUMMY_HASH, at, at),
+            )
+            prior = request.cookies.get(COOKIE)
+            if prior:
+                conn.execute(
+                    "UPDATE sessions SET revoked_at=%s WHERE token_hash=%s", (at, token_hash(prior))
+                )
+            token = new_session(conn, user_id)
+            conn.execute(
+                "UPDATE sessions SET reauthenticated_at=0 WHERE token_hash=%s", (token_hash(token),)
+            )
+            result = session_view(session_row(conn, token), token, secret)
+        cookie(response, token)
+        return Envelope(data=result)
 
     @app.post("/api/v1/auth/reauth", response_model=Envelope[SessionView])
     def reauth(body: PasswordInput, request: Request, response: Response):
@@ -420,7 +455,7 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
         try:
             if record["sanitizer_version"] != POLICY_VERSION:
                 raise ArtifactRejected("ARTIFACT_POLICY_UNSUPPORTED")
-            with ArtifactStore(settings.evidence_dir) as files:
+            with settings.artifact_store() as files:
                 value = files.read(record["sanitized_png_hash"], size=record["sanitized_bytes"])
             if dimensions(value) != (record["width"], record["height"]):
                 raise ArtifactRejected("ARTIFACT_DIMENSIONS_MISMATCH")
@@ -486,11 +521,51 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
         response.headers["ETag"] = f'"{result.version}"'
         return Envelope(data=result, resource_version=result.version)
 
-    @app.post("/api/v1/requests/{request_id}/inspections")
-    def inspect(request_id: UUID, body: VersionInput, request: Request):
+    @app.get("/api/v1/requests/{request_id}/inspection", response_model=Envelope[InspectionView])
+    def inspection_status(request_id: UUID, request: Request):
         with authorized(request) as (conn, row):
-            store.owned(conn, row["user_id"], request_id)
-            raise ApiError(503, "WORKER_UNAVAILABLE", "error.worker")
+            return Envelope(
+                data=inspections.status(
+                    conn, row["user_id"], request_id, settings.enable_inspections
+                )
+            )
+
+    @app.post(
+        "/api/v1/requests/{request_id}/inspections",
+        status_code=202,
+        response_model=Envelope[JobView],
+    )
+    def inspect(request_id: UUID, body: InspectInput, request: Request):
+        if expected(request) != body.current_version:
+            raise ApiError(412, "VERSION_PRECONDITION", "error.conflict")
+        with authorized(request) as (conn, row):
+            limiter.check(f"inspect:{row['user_id']}", limit=12, seconds=60)
+            if row["username"].startswith("demo_"):
+                limiter.check(f"inspect-ip:{request.client.host}", limit=6, seconds=3600)
+                prior = conn.execute(
+                    "SELECT id FROM jobs WHERE owner_id=%s AND kind='inspect' "
+                    "AND idempotency_key=%s",
+                    (row["user_id"], key(request)),
+                ).fetchone()
+                if (
+                    not prior
+                    and conn.execute(
+                        "SELECT count(*) AS n FROM jobs WHERE owner_id=%s AND kind='inspect'",
+                        (row["user_id"],),
+                    ).fetchone()["n"]
+                    >= 2
+                ):
+                    raise ApiError(429, "DEMO_LIMIT", "demo.limit")
+            return Envelope(
+                data=inspections.begin(
+                    conn,
+                    row["user_id"],
+                    request_id,
+                    body,
+                    key(request),
+                    settings.enable_inspections,
+                )
+            )
 
     @app.get("/api/v1/requests/{request_id}/decision", response_model=Envelope[DecisionView])
     def decision_state(request_id: UUID, request: Request):
@@ -596,12 +671,12 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
                     (row["user_id"], ids),
                 ).fetchall()
         try:
-            with BinaryStore(settings.evidence_dir.parent / "exports") as files:
+            with settings.artifact_store(binary=True) as files:
                 if existing:
                     value = files.read(existing["content_hash"], size=existing["bytes"])
                     digest = existing["content_hash"]
                 else:
-                    with ArtifactStore(settings.evidence_dir) as images:
+                    with settings.artifact_store() as images:
                         captured = [
                             (p, images.read(p["sanitized_png_hash"], size=p["sanitized_bytes"]))
                             for p in pages

@@ -72,6 +72,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/demo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Demo */
+        post: operations["demo_api_v1_auth_demo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/reauth": {
         parameters: {
             query?: never;
@@ -273,6 +290,23 @@ export interface paths {
         put?: never;
         /** Review Field */
         post: operations["review_field_api_v1_extractions__extraction_id__reviews_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requests/{request_id}/inspection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inspection Status */
+        get: operations["inspection_status_api_v1_requests__request_id__inspection_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -799,6 +833,12 @@ export interface components {
             /** Resource Version */
             resource_version?: number | null;
         };
+        /** Envelope[InspectionView] */
+        Envelope_InspectionView_: {
+            data: components["schemas"]["InspectionView"];
+            /** Resource Version */
+            resource_version?: number | null;
+        };
         /** Envelope[JobView] */
         Envelope_JobView_: {
             data: components["schemas"]["JobView"];
@@ -949,6 +989,23 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** InspectInput */
+        InspectInput: {
+            /** Current Version */
+            current_version: number;
+            /** Public Scope Seen */
+            public_scope_seen: boolean;
+        };
+        /** InspectionView */
+        InspectionView: {
+            /** Request Version */
+            request_version: number;
+            /** Enabled */
+            enabled: boolean;
+            /** Reason */
+            reason: string | null;
+            job: components["schemas"]["JobView"] | null;
         };
         /** JobView */
         JobView: {
@@ -1502,6 +1559,26 @@ export interface operations {
             };
         };
     };
+    demo_api_v1_auth_demo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_SessionView_"];
+                };
+            };
+        };
+    };
     reauth_api_v1_auth_reauth_post: {
         parameters: {
             query?: never;
@@ -1967,6 +2044,37 @@ export interface operations {
             };
         };
     };
+    inspection_status_api_v1_requests__request_id__inspection_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_InspectionView_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     inspect_api_v1_requests__request_id__inspections_post: {
         parameters: {
             query?: never;
@@ -1978,17 +2086,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["VersionInput"];
+                "application/json": components["schemas"]["InspectInput"];
             };
         };
         responses: {
             /** @description Successful Response */
-            200: {
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Envelope_JobView_"];
                 };
             };
             /** @description Validation Error */

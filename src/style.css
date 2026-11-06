@@ -1070,3 +1070,10 @@ dd small {
 .receipt-document, .changes-document { max-width: 1200px; }
 @media (max-width: 1023px) { .decision-stage, .capture-diff { grid-template-columns: minmax(0, 1fr); } .decision-summary { border-left: 0; border-top: 1px solid var(--divider); padding: 24px 0; } }
 @media (max-width: 479px) { .comparison-table-wrap table { font-size: .8rem; min-width: 460px; } .comparison-table-wrap th, .comparison-table-wrap td { padding: 10px 4px; } .comparison-totals { gap: 12px; } .approval-dialog { padding: 20px; } }
+
+.inspection-control .check-label { display:flex; align-items:flex-start; gap:.65rem; font-size:.85rem; margin:1rem 0; }
+.inspection-control input[type="checkbox"] { width:1.1rem; height:1.1rem; flex-shrink:0; margin-top:.15rem; }
+.inspection-control .notice p { margin:.5rem 0 0; }
+
+.inspection-control .notice { display:block; }
+.margin-paper > .text-button { display:flex; margin-top:.6rem; }

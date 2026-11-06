@@ -133,8 +133,8 @@ def test_owner_denial_profile_admission_and_worker_fail_closed(http_setup):
         assert (
             other.post(
                 f"/api/v1/requests/{request_id}/inspections",
-                json={"current_version": 1},
-                headers=other_headers,
+                json={"current_version": 1, "public_scope_seen": True},
+                headers={**other_headers, "If-Match": '"1"', "Idempotency-Key": str(uuid4())},
             ).status_code
             == 404
         )
@@ -150,7 +150,9 @@ def test_owner_denial_profile_admission_and_worker_fail_closed(http_setup):
     ]
     assert save(client, headers, body).status_code == 422
     worker = client.post(
-        f"/api/v1/requests/{request_id}/inspections", json={"current_version": 1}, headers=headers
+        f"/api/v1/requests/{request_id}/inspections",
+        json={"current_version": 1, "public_scope_seen": True},
+        headers={**headers, "If-Match": '"1"', "Idempotency-Key": str(uuid4())},
     )
     assert worker.status_code == 503 and worker.json()["code"] == "WORKER_UNAVAILABLE"
     assert client.get("/health/ready").json() == {"status": "degraded"}

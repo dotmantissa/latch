@@ -14,6 +14,17 @@ class AppSettings(Settings):
     database_schema: str = Field(default="latch", pattern=r"^latch(?:_test_[a-f0-9]{32})?$")
     static_dir: Path = Path("dist")
     evidence_dir: Path = Path("var/evidence")
+    enable_inspections: bool = False
+    enable_demo: bool = False
+    artifact_group_id: int | None = Field(default=None, ge=0)
+    artifact_owner_ids: tuple[int, ...] = ()
+
+    def artifact_store(self, *, binary=False):
+        from services.artifacts.store import ArtifactStore, BinaryStore
+
+        store = BinaryStore if binary else ArtifactStore
+        root = self.evidence_dir.parent / "exports" if binary else self.evidence_dir
+        return store(root, group_id=self.artifact_group_id, owner_ids=self.artifact_owner_ids)
 
     @classmethod
     def from_environment(cls) -> "AppSettings":
@@ -24,8 +35,15 @@ class AppSettings(Settings):
             "LATCH_DB_SCHEMA": "database_schema",
             "LATCH_STATIC_DIR": "static_dir",
             "LATCH_EVIDENCE_DIR": "evidence_dir",
+            "LATCH_ENABLE_INSPECTIONS": "enable_inspections",
+            "LATCH_ENABLE_DEMO": "enable_demo",
+            "LATCH_ARTIFACT_GROUP_ID": "artifact_group_id",
         }
         base.update({field: os.environ[name] for name, field in names.items() if os.getenv(name)})
+        if os.getenv("LATCH_ARTIFACT_OWNER_IDS"):
+            base["artifact_owner_ids"] = tuple(
+                int(v) for v in os.environ["LATCH_ARTIFACT_OWNER_IDS"].split(",")
+            )
         return cls(**base)
 
     def database_url(self) -> str:

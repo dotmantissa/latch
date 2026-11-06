@@ -231,6 +231,18 @@ class Tasks:
                     self.cleanup(row, row.get("requested_outcome", "interrupted"), final=True)
                     return
                 if not cleaned or timed_out or code != 0:
+                    reason = "CAPTURE_FAILED"
+                    try:
+                        value = json.loads(output[:16384])
+                        candidate = value.get("code", "CAPTURE_FAILED")
+                        if (isinstance(candidate, str) and 1 <= len(candidate) <= 80
+                                and all(c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ_" for c in candidate)):
+                            reason = candidate
+                    except (ValueError, TypeError, AttributeError):
+                        pass
+                    print(json.dumps({"event": "capture_failed", "task_id": task_id.hex,
+                                      "code": reason, "timed_out": timed_out,
+                                      "cleanup_confirmed": cleaned}), flush=True)
                     self.cleanup(row, "timed_out" if timed_out else "failed", final=True)
                     return
                 if (

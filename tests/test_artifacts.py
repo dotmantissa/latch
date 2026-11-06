@@ -29,7 +29,10 @@ def png(*, metadata=False):
 def test_real_seccomp_denies_file_network_fork_and_exec():
     child = subprocess.run(
         [sys.executable, "-I", "services/artifacts/decode.py", "--probe"],
-        capture_output=True, timeout=10, env={"LC_ALL": "C"}, close_fds=True,
+        capture_output=True,
+        timeout=10,
+        env={"LC_ALL": "C"},
+        close_fds=True,
     )
     assert child.returncode == 0 and child.stdout == b"restricted\n"
 
@@ -114,8 +117,12 @@ def test_private_atomic_files_reject_links_corruption_paths_and_public_modes(tmp
 
 def test_fingerprint_preserves_new_terms_and_profile_or_source_changes():
     profile = SourceProfile(
-        id="projection_assertion", version=1, origin="https://vendor.example.com",
-        offer_paths=["/offer"], main_selector="main", expires_at="2026-11-07T00:00:00Z",
+        id="projection_assertion",
+        version=1,
+        origin="https://vendor.example.com",
+        offer_paths=["/offer"],
+        main_selector="main",
+        expires_at="2026-11-07T00:00:00Z",
     )
     first = [{"url": "https://vendor.example.com/offer", "text": "Cafe\u0301  $12.34\r\nTerms"}]
     normalized = [{"url": first[0]["url"], "text": "Café $12.34\nTerms"}]
@@ -128,3 +135,32 @@ def test_fingerprint_preserves_new_terms_and_profile_or_source_changes():
     assert fingerprint(first, profile.model_copy(update={"version": 2})) != (
         fingerprint(first, profile)
     )
+
+
+def test_explicit_shared_store_retains_link_hash_owner_and_mode_checks(tmp_path):
+    root = tmp_path / "shared"
+    clean = sanitize(png())
+    with ArtifactStore(root, group_id=os.getgid(), owner_ids=(os.getuid(),)) as store:
+        store.put(clean)
+        target = root / store.name(clean.sanitized_hash)
+        assert root.stat().st_mode & 0o2770 == 0o2770
+        assert target.stat().st_mode & 0o777 == 0o640
+        assert store.read(clean.sanitized_hash) == clean.data
+        with pytest.raises(ArtifactRejected):
+            ArtifactStore(root)
+        for mode in (0o644, 0o660, 0o650):
+            target.chmod(mode)
+            with pytest.raises(ArtifactRejected):
+                store.read(clean.sanitized_hash)
+        target.chmod(0o640)
+        link = tmp_path / "linked"
+        os.link(target, link)
+        with pytest.raises(ArtifactRejected):
+            store.read(clean.sanitized_hash)
+        link.unlink()
+        target.write_bytes(b"x" * len(clean.data))
+        with pytest.raises(ArtifactRejected):
+            store.read(clean.sanitized_hash)
+    root.chmod(0o2775)
+    with pytest.raises(ArtifactRejected):
+        ArtifactStore(root, group_id=os.getgid(), owner_ids=(os.getuid(),))

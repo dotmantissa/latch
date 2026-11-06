@@ -1,0 +1,112 @@
+{
+  "status": "public_flow_verified",
+  "public_url": "https://latch.64.177.55.57.sslip.io",
+  "provider": "Vultr",
+  "schema_version": 11,
+  "worker_profile_version": 2,
+  "local_tests": {
+    "passed": 177,
+    "opt_in_skips": 19
+  },
+  "real_neon": {
+    "api_tests": 7,
+    "inspection_admission": 1,
+    "demo_isolation": 1
+  },
+  "worker_containment": {
+    "status": "passed",
+    "reports": [
+      {
+        "at": "2026-11-06T08:31:06.148093+00:00",
+        "scope": "actual_worker_infrastructure",
+        "mode": "timeout",
+        "task_id": "4bb29afd0d134f6c84c54c2747824948",
+        "image_digest": "sha256:526ab779acd7aa7c153b3642b91b5db9b084c311e968fb8f1b98d726af59087d",
+        "runtime": "runsc",
+        "internal_network": true,
+        "exit_code": -9,
+        "timeout_observed": true,
+        "cleanup_observed": true
+      },
+      {
+        "at": "2026-11-06T08:31:16.339635+00:00",
+        "scope": "actual_worker_infrastructure",
+        "mode": "capture",
+        "task_id": "9582785dbcdd455d96210a1679bc3cb3",
+        "image_digest": "sha256:526ab779acd7aa7c153b3642b91b5db9b084c311e968fb8f1b98d726af59087d",
+        "runtime": "runsc",
+        "internal_network": true,
+        "exit_code": 0,
+        "timeout_observed": false,
+        "cleanup_observed": true,
+        "complete": true,
+        "uid": 1000,
+        "browser_version": "156.0.8078.4",
+        "chromium_sandbox_text": "Sandbox Status\nLayer 1 Sandbox\tNamespace\nPID namespaces\tYes\nNetwork namespaces\tYes\nSeccomp-BPF sandbox\tYes\nSeccomp-BPF sandbox supports TSYNC\tYes\nPtrace Protection with Yama LSM (Broker)\tYes\nPtrace Protection with Yama LSM (Non-broker)\tNo\n\nYou are adequately sandboxed.",
+        "png_sha256": "d7e56fac59b89439f73c4c0ce2a2a581aa1335b98fa12d22dfad7f01eb15d9b9",
+        "network_observations": {
+          "metadata": "request_failed",
+          "private": "request_failed",
+          "loopback": "request_failed",
+          "ipv6_private": "request_failed",
+          "direct_public_tcp": "connection_failed",
+          "host_ssh": "connection_failed",
+          "host_dns_tcp": "connection_failed",
+          "host_dns_udp": "response_failed"
+        }
+      }
+    ]
+  },
+  "buyer_acceptance": false,
+  "supplier_order_placed": false,
+  "verified_at": "2026-11-06T09:07:49.760444+00:00",
+  "public_browser": {
+    "fresh_model_plan": true,
+    "fresh_sandbox_capture": true,
+    "grounded_extraction": true,
+    "raster_correspondence": true,
+    "comparison_persisted": true,
+    "metadata_url_rejected": true,
+    "mobile_overflow": false,
+    "page_errors": []
+  },
+  "call_budget": {
+    "maximum_per_inspection": 12,
+    "observed_plan_calls": 1,
+    "observed_extraction_calls": 2,
+    "observed_vision_calls": 1
+  },
+  "recovery": {
+    "pre_schema11_encrypted_isolated_restore": "passed",
+    "actual_control_encrypted_backup": "passed",
+    "offhost_encrypted_backup_decrypted_verified": "passed",
+    "production_cutover": "not performed",
+    "populated_schema11_isolated_restore": "passed",
+    "inspection_plans_restored": 1,
+    "exact_schema_removed": true
+  },
+  "remaining": [
+    "Exact LabLab dashboard cutoff and owner-account submission",
+    "Independent offline operator key custody and provider disaster recovery",
+    "Genuine buyer acceptance and complete supplier quote qualification"
+  ],
+  "public_security": {
+    "status": "passed",
+    "artifact_hashes": [
+      "820661a3b12deb6f2ee5d631d7e382cf160b97ccaa5e1392c3324d7fc82f97ae"
+    ],
+    "other_owner_denied": true,
+    "loaded_image": true,
+    "mobile_themes": 2,
+    "axe_violations": []
+  },
+  "submission_assets": {
+    "video": "docs/submission/demo.mp4",
+    "slides": "docs/submission/slides.pdf",
+    "cover": "docs/submission/cover.png",
+    "description": "docs/submission/ENTRY.md",
+    "official_submission": "not performed",
+    "public_download_hashes": "verified",
+    "video_full_decode": "passed"
+  }
+}

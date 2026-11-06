@@ -1,3 +1,5 @@
+> Current deployment: the live inspection/consent/progress flow, bounded model planning, Vultr HTTPS control host and separate sandbox worker are active. Earlier pending gates below are historical; current scope and limitations are in [deployment](docs/DEPLOYMENT.md).
+
 # Latch architecture and implementation contract
 
 Version 2, November 4, 2026. The user authorizes implementation and commits per verified step. Provider independent work may proceed while live Vultr gates are deferred. Application storage uses the supplied Neon Postgres database. Source capture, model review and release remain gated on real evidence. The product name is Latch; QuoteProof appears only in retained research history.

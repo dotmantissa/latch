@@ -20,6 +20,7 @@ import {
 } from "./api";
 import { useSession } from "./pages";
 import { ErrorNotice } from "./ui";
+import { InspectionControl } from "./inspection";
 
 function normalize(input: SavedRequest["worksheet"]): WorksheetInput {
   return { ...input, sources: input.sources ?? [] };
@@ -716,10 +717,9 @@ function Editor({
             <div className="latch-seam" aria-hidden>
               <span />
             </div>
-            <button className="primary" disabled type="button">
-              {copy("request.inspect")}
-            </button>
-            <p className="help">{copy("request.inspectPending")}</p>
+            {saved && !historical && saved.status !== "archived"
+              ? <InspectionControl key={`${saved.id}:${saved.version}`} saved={saved} dirty={dirty} />
+              : <p className="help">{copy("inspection.saveFirst")}</p>}
             {saved ? <Link className="text-button" to={`/requests/${saved.id}/evidence${historical ? `?version=${saved.version}` : ""}`}>
               {copy("review.open")}
             </Link> : null}

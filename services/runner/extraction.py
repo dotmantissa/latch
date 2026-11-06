@@ -41,7 +41,10 @@ def extract(
     on_invalid=None,
     deadline: float | None = None,
     checkpoint=None,
+    max_calls=3,
 ):
+    if type(max_calls) is not int or not 1 <= max_calls <= 3:
+        raise ValueError("Invalid extraction repair limit")
     deadline = min(deadline, time.monotonic() + 60) if deadline is not None else (
         time.monotonic() + 60
     )
@@ -75,7 +78,7 @@ def extract(
         {"role": "user", "content": canonical_json(public)},
     ]
     usages = []
-    for attempt in range(3):
+    for attempt in range(max_calls):
         truncated = False
         try:
             message, usage = client.complete(
@@ -131,7 +134,7 @@ def extract(
                         "usage": usage,
                     }
                 )
-            if attempt == 2:
+            if attempt == max_calls - 1:
                 raise ProviderFailure("EXTRACTION_SCHEMA_OR_EVIDENCE_INVALID") from None
             # Repairs request formatting/grounding only. No tool, URL, item or budget expansion.
             messages.append(

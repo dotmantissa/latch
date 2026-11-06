@@ -9,7 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from uuid import UUID
 
-from services.common.source_policy import SourceProfile
+from services.common.source_policy import SourceProfile, profile_hash
 from services.common.task_contracts import TaskCommand, TaskRef
 from services.supervisor.spike import WorkerSettings, host_preflight
 from services.supervisor.tasks import Registry, TaskError, Tasks
@@ -138,6 +138,15 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     do_POST = dispatch
+
+    def do_GET(self):
+        if self.path != "/v1/health" or self.headers.get("Transfer-Encoding"):
+            return self.reply(404, {"code": "ROUTE_NOT_FOUND"})
+        return self.reply(200, {
+            "status": "ready",
+            "profiles": [{"id": p.id, "version": p.version, "hash": profile_hash(p)}
+                         for p in self.server.tasks.profiles.values()],
+        })
 
 
 def load(args):

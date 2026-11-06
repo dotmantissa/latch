@@ -2,55 +2,46 @@
 
 Check the terms. Keep the decision yours.
 
-Latch helps a requester put an equipment purchase on paper: required items, quantities,
-budget, deadline and supported supplier pages. The local workspace now saves drafts and
-revisions in Neon Postgres, with named accounts, private sessions and a readable history.
+Inspect public supplier offers in a contained browser, verify captured evidence with Vultr inference, and keep the final decision with the requester.
 
-The interface uses warm limestone, oxblood, the original Latch mark, and light and dark
-appearance. Its request rail and wide worksheet keep the details easy to return to.
+[Open the public app](https://latch.64.177.55.57.sslip.io) and choose **Try a private demo**, then **Start the U6+ source demonstration**. Check the public item description and consent disclosure before starting an inspection. Each visitor has a separate workspace and two live inspections. Demo sessions can review evidence and compare terms; approval requires a named account and recent password verification.
 
-Vultr inference and the private Ubuntu worker are connected. Live text, tools, image input,
-browser isolation and restricted networking have passed their infrastructure checks.
-Private durable capture, grounded extraction, image correspondence and sanitized evidence
-storage are implemented. Individual source review feeds comparisons calculated by the server and
-selection among feasible offers. Approval binds one saved version; release rechecks every source
-and creates an immutable internal record only after the database commit guards pass.
-Authorized JSON/PDF/ZIP exports and encrypted isolated backup/restore are implemented.
+The demonstration visits the real Ubiquiti U6+ product page. Its USD 200 budget and deadline seven days away are labelled demonstration requirements. Missing shipping, tax, arrival and purchase terms stay unknown. Product photographs outside the reviewed capability produce image abstention. An incomplete quote cannot become a feasible selection or an approved purchase. No buyer acceptance or supplier order is claimed.
 
-An actual public supplier runner check passed through capture, extraction, image abstention
-and Neon publication. Its competing prices and missing purchase terms remain unresolved;
-blocked product images cannot become visual approval. The source is not selectable.
-Public supplier inspection stays gated pending actual buyer/source qualification. No complete
-buyer task, observed human approval, release against qualified supplier sources or public deployment is claimed.
+## How Vultr powers Latch
 
-Start with [local setup](docs/LOCAL.md). The connection is kept in an ignored private file.
-Create your account through the terminal command, then run bash scripts/dev.sh to open
-https://localhost:8443. No supplier pages or requests are seeded.
+Vultr Cloud Compute hosts the public React application, FastAPI backend and separate durable runner on an Ubuntu control VM in Atlanta. Caddy provides HTTPS. A second Vultr VM runs the browser task supervisor and disposable gVisor containers. Vultr is the system that plans and executes inspections, with Neon Postgres holding durable records.
+
+All model calls use Vultr Serverless Inference. The exact configured model identifier is recorded in the deployment guide and checked against the authenticated provider catalog. The agent receives only public item descriptions and admitted source IDs/URLs. Its validated plan orders exactly those sources. Playwright captures approved public pages; bounded extraction and screenshot correspondence produce provisional evidence for individual review. Private specifications, budget, delivery notes and identity do not enter inference requests.
+
+The worker has no model, database or deployment credentials. It accepts fixed commands over a restricted SSH tunnel and mutual TLS. Browser tasks run without root, with Chromium sandboxing, gVisor, seccomp, resource limits, an exact public URL proxy and host firewall restrictions. A separate sweeper can remove a task when its executor stops. The control host stores evidence on an encrypted LUKS2 volume; separate API and runner accounts share only the explicit artifact group.
+
+## Decisions stay reviewable
+
+Requests have immutable saved versions. Individual reviews preserve source attribution and exact quoted spans. Comparisons use integer arithmetic and keep unknown totals unresolved. Only feasible offers can be selected. Approval binds the exact reviewed packet, expires and can be revoked. Release recaptures every source and commits an immutable internal receipt only after freshness, ownership, eligibility and approval checks pass at database commit. It does not place an order.
+
+Authorized JSON, PDF and ZIP exports and encrypted consistent backups are implemented. Restores use a new isolated schema and revoke restored sessions. The public source remains unsuitable for a complete release because its quote evidence is incomplete.
+
+## Verification and submission
+
+The [deployment guide](docs/DEPLOYMENT.md) covers host setup, service isolation, source admission and recovery. The [submission package](docs/submission/ENTRY.md) contains the entry description, slides, cover and recorded demonstration. Watch the [recorded demonstration](https://latch.64.177.55.57.sslip.io/assets/submission/demo.mp4) or open the [slides](docs/submission/slides.pdf). The [recording notes](docs/submission/DEMO.md) distinguish actual automation and containment observations from human buyer acceptance.
+
+Automated checks cover arithmetic, real HTTP ownership and sessions, isolated Neon migrations, queue admission and replay, lease recovery, review history, commit guards and encrypted restore. Actual Vultr worker checks exercise metadata/private/loopback network denial, direct socket denial, watchdog termination and cleanup. [Current deployment evidence](docs/evidence/DEPLOYMENT_STATUS.json) records the finite checks and their date.
+
+## Run and understand the project
+
+Start with [local setup](docs/LOCAL.md). Use owned private files for the database connection and keys; no credential belongs in a frontend variable, shell argument or commit. Public inspection is enabled only through explicit operator configuration and fresh matching worker profiles.
 
 | Document | What it covers |
 | --- | --- |
-| [Local workspace](docs/LOCAL.md) | Run the app, provision an account and verify real Neon persistence |
-| [Architecture](ARCHITECTURE.md) | Product scope, boundaries and future review and release rules |
-| [Implementation roadmap](docs/IMPLEMENTATION.md) | Available packages and remaining live gates |
-| [Data and API contracts](docs/CONTRACTS.md) | Versioned records, ownership, API and worker contracts |
-| [Design specification](docs/DESIGN.md) | Layout, typography, themes and accessible interactions |
-| [Security and operations](docs/SECURITY.md) | Sessions, isolation, deployment and recovery requirements |
-| [Runtime probes](docs/P0.md) | Source admission and live capability checks |
-| [Durable worker](docs/SUPERVISOR.md) | Private supervision, job recovery and progress replay |
-| [Captured evidence](docs/EVIDENCE.md) | Isolated PNG sanitization, immutable attribution and authorized delivery |
-| [Review commands](docs/REVIEWS.md) | Individual checks, source corrections, disputes and preserved history |
-| [Image correspondence](docs/CORRESPONDENCE.md) | Attributed model observations and enforced abstention |
-| [Decision workflow](docs/WORKFLOW.md) | Comparisons, approval, fresh recheck, atomic internal receipt and exports |
-| [Encrypted recovery](docs/RECOVERY.md) | Consistent backups, isolated restore and truthful retention limits |
-| [Worker evidence](docs/evidence/WORKER_STATUS.json) | Actual browser isolation, network denial and Vultr capability observations |
-| [Acceptance plan](docs/ACCEPTANCE.md) | Future real supplier journeys and buyer evaluation |
-| [Brand assets](assets/brand/README.md) | Logo masters, fonts and browser icons |
-| [Sources](docs/SOURCES.md) | Official technical references |
+| [Architecture](ARCHITECTURE.md) | Product and trust boundaries |
+| [Deployment](docs/DEPLOYMENT.md) | Vultr hosts, HTTPS, services and recovery |
+| [Contracts](docs/CONTRACTS.md) | Versioned data, API and task commands |
+| [Evidence](docs/EVIDENCE.md) | Captures, isolation, hashes and delivery |
+| [Reviews](docs/REVIEWS.md) | Individual field decisions and history |
+| [Correspondence](docs/CORRESPONDENCE.md) | Vision attribution and abstention |
+| [Workflow](docs/WORKFLOW.md) | Comparison, approval, recheck and internal receipts |
+| [Recovery](docs/RECOVERY.md) | Encrypted backup and isolated restore |
+| [Brand](assets/brand/README.md) | Original logo and licensed fonts |
 
-The automated checks cover deterministic arithmetic, real HTTP identity, owner isolation,
-Neon migrations, durable jobs, saved revision recovery and stored progress. Actual worker
-interruption and runner recovery checks use technical documentation. Supplier accuracy,
-release against qualified supplier sources and buyer value still need their own evidence.
-
-Earlier research remains in [the archive](research/README.md). Its synthetic examples are
-historical planning material. The local recovery checklist stays private and ignored.
+Original project code is [MIT licensed](LICENSE). Bundled fonts retain their SIL Open Font License notices. Earlier research remains in [the archive](research/README.md); historical scenarios are planning material.

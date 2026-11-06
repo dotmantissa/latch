@@ -1,5 +1,7 @@
 """Operator-reviewed source admission, not a browser-side network boundary."""
 
+import hashlib
+import json
 from datetime import UTC, datetime
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
@@ -73,6 +75,12 @@ class SourceProfile(StrictRecord):
         if f"https://{parsed.hostname}" != self.origin or parsed.path not in self.offer_paths:
             raise ValueError("Unsupported supplier page")
         return canonical
+
+
+def profile_hash(profile: SourceProfile) -> str:
+    return hashlib.sha256(
+        json.dumps(profile.model_dump(mode="json"), sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
 
 
 class BuyerItem(StrictRecord):

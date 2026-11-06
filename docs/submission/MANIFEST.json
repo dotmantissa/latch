@@ -1,0 +1,22 @@
+{
+  "cover.png": {
+    "sha256": "000a49f474e71e82f4312c22cc6974f2bdd4a8e46b871ae55c083c29253bc6aa",
+    "bytes": 54580
+  },
+  "DEMO.md": {
+    "sha256": "ae4da1b83d91b6746f89a41e0cf62ab4803f2401c09700580470f3e335cacc5b",
+    "bytes": 1334
+  },
+  "demo.mp4": {
+    "sha256": "dda19188e029400cd0ad6fa745a7ff6d0d6a05176a147a8e6a7841a99cb85f91",
+    "bytes": 2271327
+  },
+  "slides.pdf": {
+    "sha256": "c39c385b6e29c08a10fa8707871ba1aed34bd6887e670208055465158e13d8af",
+    "bytes": 31433
+  },
+  "ENTRY.md": {
+    "sha256": "5b99e9eb00d39f1809a59cd52c4e42c9a6bf4b560fd205e4be253914373ac003",
+    "bytes": 3020
+  }
+}
